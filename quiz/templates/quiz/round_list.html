@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Round List</h1>
+  {% if round_list %}
+  <ul>
+    {% for round in round_list %}
+      <li>
+        <a href="{{ round.get_absolute_url }}">{{ round.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    <p>There are no rounds.</p>
+  {% endif %}
+{% endblock %}
