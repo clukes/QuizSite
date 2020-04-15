@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'quiz',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -122,6 +123,18 @@ STATIC_URL = '/static/'
 
 MEDIA_ROOT= os.path.join(BASE_DIR,'mediafiles/')
 MEDIA_URL = '/media/'
+
+
+#Settings for django channels
+ASGI_APPLICATION = 'QuizSite.routing.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        },
+    },
+}
 
 
 #Heroku setup

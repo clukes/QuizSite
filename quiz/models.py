@@ -14,6 +14,7 @@ class TextResponse(models.Model):
 
 class Question(models.Model):
     """Model representing a Question."""
+    number = models.IntegerField(unique=True, editable=True)
     question = models.CharField(max_length=300)
 
     # Foreign Key used because book can only have one author, but authors can have multiple books
@@ -24,6 +25,11 @@ class Question(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         return self.question
+
+    def get_absolute_url(self):
+        """Returns the url to access the page for this round."""
+        return reverse('question-detail', args=[str(self.round.id), str(self.id)])
+
 
 from django.urls import reverse # Used to generate URLs by reversing the URL patterns
 
@@ -38,3 +44,6 @@ class Round(models.Model):
     def get_absolute_url(self):
         """Returns the url to access the page for this round."""
         return reverse('round-detail', args=[str(self.id)])
+
+    def get_first_question(self):
+        return self.question_set.all().order_by('number').first()

@@ -2,4 +2,16 @@
 
 {% block content %}
   <h1>Quiz Website</h1>
+  {% if name %}
+  <p>Username is {{name}}</p>
+  #Todo change name button
+  #Todo ready button
+  {% else %}
+  <form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" name="submit" class="btn btn-success" value="Submit"/>
+  </form>
+
+  {% endif %}
 {% endblock %}
