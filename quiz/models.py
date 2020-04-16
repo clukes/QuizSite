@@ -47,3 +47,19 @@ class Round(models.Model):
 
     def get_first_question(self):
         return self.question_set.all().order_by('number').first()
+
+class User(models.Model):
+    username = models.CharField(max_length=200, unique=True)
+    game = models.ForeignKey('Game', on_delete=models.SET_NULL, null=True)
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.username
+
+class Game(models.Model):
+    """Model representing a game"""
+    leader = models.ForeignKey('User', related_name='game_leader', on_delete=models.CASCADE, null=False)
+    active = models.BooleanField(default=False)
+    
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.id

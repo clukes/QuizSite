@@ -4,14 +4,37 @@
   <h1>Quiz Website</h1>
   {% if name %}
   <p>Username is {{name}}</p>
-  #Todo change name button
-  #Todo ready button
+  <br>
+    {% if request.session.currentGameCode is None %}
+      <form action="" method="post">
+        {% csrf_token %}
+        {{ join_room_form.as_p }}
+        <input type="submit" name="join-room" class="btn btn-success" value="Join Room"/>
+      </form>
+    {% else %}
+    <p> Currently in game.
+      Room Code: {{request.session.currentGameCode}}</p>
+    <form action="" method="post">
+        {% csrf_token %}
+        <input type="submit" name="enter-game" class="btn btn-success" value="Enter Game"/>
+        <input type="submit" name="leave-game" class="btn btn-success" value="Leave Game"/>
+      </form>
+    {% endif %}
   {% else %}
   <form action="" method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" name="submit" class="btn btn-success" value="Submit"/>
+    {{ username_form.as_p }}
+    <input type="submit" name="set-name" class="btn btn-success" value="Set Name"/>
   </form>
 
   {% endif %}
+
+  {% if messages %}
+  <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+
 {% endblock %}

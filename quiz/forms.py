@@ -5,3 +5,6 @@ class TextReponseForm(forms.Form):
 
 class UsernameForm(forms.Form):
     username = forms.CharField(max_length=300, help_text="Enter your username.")
+
+class JoinRoomForm(forms.Form):
+    roomCode = forms.IntegerField(help_text="Enter the room code.")

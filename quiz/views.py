@@ -1,25 +1,74 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 
 # Create your views here.
-from quiz.models import TextResponse, Question, Round
-from quiz.forms import TextReponseForm, UsernameForm
+from quiz.models import TextResponse, Question, Round, Game, User
+from quiz.forms import TextReponseForm, UsernameForm, JoinRoomForm
+from django.contrib import messages
+from django.db import IntegrityError
 
 def index(request):
     """View function for home page of site."""
 
     name = request.session.get('name')
     if request.method == 'POST':
-        username_form = UsernameForm(request.POST)
-        if username_form.is_valid():
-            request.session['name'] = username_form.cleaned_data['username']
+        if 'set-name' in request.POST:
+            username_form = UsernameForm(request.POST)
+            if username_form.is_valid():
+                try:
+                    name = username_form.cleaned_data['username']
+                    user = User()
+                    user.username = name
+                    user.save()
+                    request.session['name'] = name
+                    request.session['userID'] = user.id
+                except IntegrityError as e:
+                    messages.add_message(request, messages.ERROR, "Username not unique.")
+                return HttpResponseRedirect(reverse('index'))
+        elif 'join-room' in request.POST:
+            join_room_form = JoinRoomForm(request.POST)
+            if join_room_form.is_valid():
+                try:
+                    userID = request.session.get('userID')
+                    user = User.objects.get(id=userID)
+                    gameID = join_room_form.cleaned_data['roomCode']
+                    game = Game.objects.get(id=gameID)
+                    if(game.active):
+                        user.game = game
+                        user.save()
+                        request.session['currentGameCode'] = game.id
+                    else:
+                        messages.add_message(request, messages.ERROR, "The game has ended.")
+                except User.DoesNotExist:
+                    messages.add_message(request, messages.ERROR, "User not in database.")
+                    request.session['userID'] = None
+                    request.session['currentGameCode'] = None
+                except Game.DoesNotExist:
+                    messages.add_message(request, messages.ERROR, "No game with that code.")
+                    request.session['currentGameCode'] = None
+                return HttpResponseRedirect(reverse('index'))
+        elif 'enter-game' in request.POST:
+            return HttpResponseRedirect(reverse('player-room'))
+        elif 'leave-game' in request.POST:
+            try:
+                userID = request.session.get('userID')
+                user = User.objects.get(id=userID)
+                user.game = None
+                user.save()
+            except User.DoesNotExist:
+                messages.add_message(request, messages.ERROR, "User not in database.")
+                request.session['userID'] = None
+            request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
 
     else:
         username_form = UsernameForm()
+        join_room_form = JoinRoomForm()
 
     context = {
         'name': name,
-        'form': username_form,
+        'username_form': username_form,
+        'join_room_form': join_room_form,
     }
 
     # Render the HTML template index.html with the data in the context variable
@@ -27,9 +76,45 @@ def index(request):
 
 def leaderHome(request):
     """View function for the leader landing screen"""
-    return render(request, 'leader/index.html')
+    if request.method == 'POST':
+        if 'create-game' in request.POST:
+            try:
+                userID = request.session.get('userID')
+                user = User.objects.get(id=userID)
+                game = Game()
+                game.leader = user
+                game.active = True
+                game.save()
+                request.session['currentGameCode'] = game.id
+            except User.DoesNotExist:
+                messages.add_message(request, messages.ERROR, "User not in database.")
+                request.session['userID'] = None
+                request.session['currentGameCode'] = None
 
+            return HttpResponseRedirect(reverse('leader-home'))
 
+        elif 'end-game' in request.POST:
+            try:
+                gameID = request.session.get('currentGameCode')
+                game = Game.objects.get(id=gameID)
+                game.active = False
+                game.save()
+                userID = request.session.get('userID')
+                user = User.objects.get(id=userID)
+                user.game = None
+            except User.DoesNotExist:
+                messages.add_message(request, messages.ERROR, "User not in database.")
+                request.session['userID'] = None
+            except Game.DoesNotExist:
+                messages.add_message(request, messages.ERROR, "No game running.")
+
+            request.session['currentGameCode'] = None
+            return HttpResponseRedirect(reverse('leader-home'))
+
+    context = {
+    }
+
+    return render(request, 'leader/index.html', context)
 
 
 from django.views import generic
@@ -75,7 +160,32 @@ class QuestionDetailView(generic.DetailView, FormMixin):
 
 from django.shortcuts import render
 
-def room(request, room_name):
+def leader_room(request, room_code):
     return render(request, 'leader/room.html', {
-        'room_name': room_name
+        'room_code': room_code
     })
+
+def player_game(request):
+    try:
+        gameID = request.session.get('currentGameCode')
+        game = Game.objects.get(id=gameID)
+        if(not game.active):
+            messages.add_message(request, messages.ERROR, "Game has ended.")
+            request.session['currentGameCode'] = None
+            return HttpResponseRedirect(reverse('index'))
+    except Game.DoesNotExist:
+        messages.add_message(request, messages.ERROR, "Game doesn't exist.")
+        return HttpResponseRedirect(reverse('index'))
+
+    if request.method == 'POST':
+        text_response_form = TextReponseForm(request.POST)
+        if text_response_form.is_valid():
+            return HttpResponseRedirect(reverse('player-room'))
+
+    else:
+        text_response_form = TextReponseForm()
+
+    context = {
+        'form': text_response_form,
+    }
+    return render(request, 'game.html', context=context);
