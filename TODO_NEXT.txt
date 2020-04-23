@@ -15,6 +15,9 @@ it shows players that question:
 
 - Get show all answers button working on leader screen
 
+- Add next and previous buttons on question. Go to question with next number.
+- Add a game (different name maybe? quiz?) to collate the rounds into one group.
+
 - When displaying marking on player screen, if correct then checkmark,
 if incorrect then cross, otherwise display some partial mark and the number of points.
 

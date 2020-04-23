@@ -6,11 +6,13 @@
   <div style="margin-left:20px;margin-top:20px">
     <h4>Questions</h4>
     {% if round.genericquestion_set %}
+    <ul>
     {% for question in round.genericquestion_set.all %}
     <li>
       <a href="{{ question.get_absolute_url }}"><strong>{{ question.number }}.</strong> {{ question.question }}</a>
     </li>
     {% endfor %}
+    </ul
     {% else %}
     No questions
     {% endif %}

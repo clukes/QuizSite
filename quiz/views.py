@@ -2,10 +2,15 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 
 # Create your views here.
-from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore
+from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore, Quiz
 from quiz.forms import TextReponseForm, UsernameForm, JoinRoomForm
 from django.contrib import messages
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.views import generic
+from django.views.generic.edit import FormMixin
 
 def index(request):
     """View function for home page of site."""
@@ -119,18 +124,14 @@ def leaderHome(request):
     return render(request, 'leader/index.html', context)
 
 
-from django.views import generic
-from django.views.generic.edit import FormMixin
-
-class RoundListView(generic.ListView):
-    model = Round
-    template_name = 'leader/round_list.html'
+class QuizListView(generic.ListView):
+    model = Quiz
+    template_name = 'leader/quiz_list.html'
     ordering = ['number']
 
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-
+class QuizDetailView(generic.DetailView):
+    model = Quiz
+    template_name = 'leader/quiz_detail.html'
 
 class RoundDetailView(generic.DetailView):
     model = Round

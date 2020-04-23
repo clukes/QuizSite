@@ -88,7 +88,7 @@ class GenericQuestion(models.Model):
 
     def get_absolute_url(self):
         """Returns the url to access the page for this round."""
-        return reverse('question-detail', args=[str(self.round.id), str(self.id)])
+        return reverse('question-detail', args=[str(self.round.quiz.id), str(self.round.id), str(self.id)])
 
     def get_detail(self):
         """Returns the detail object."""
@@ -98,6 +98,7 @@ from django.urls import reverse # Used to generate URLs by reversing the URL pat
 
 class Round(models.Model):
     """Model representing a round"""
+    quiz = models.ForeignKey('Quiz', on_delete=models.SET_NULL, null=True)
     number = models.IntegerField()
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=200, null=True, blank=True)
@@ -111,10 +112,27 @@ class Round(models.Model):
 
     def get_absolute_url(self):
         """Returns the url to access the page for this round."""
-        return reverse('round-detail', args=[str(self.id)])
+        return reverse('round-detail', args=[str(self.quiz.id), str(self.id)])
 
     def get_first_question(self):
         return self.genericquestion_set.all().order_by('number').first()
+
+class Quiz(models.Model):
+    """Model representing a quiz"""
+    number = models.IntegerField()
+    title = models.CharField(max_length=200)
+    description = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        ordering = ['number']
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.title
+
+    def get_absolute_url(self):
+        """Returns the url to access the page for this round."""
+        return reverse('quiz-detail', args=[str(self.id)])
 
 class User(models.Model):
     username = models.CharField(max_length=200, unique=True)
