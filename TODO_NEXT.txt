@@ -13,6 +13,7 @@ it shows players that question:
 - Show player a game starting screen when leader presses start game.
 - Add leave game button for player on game screen.
 
+- Get show all answers button working on leader screen
 
 - When displaying marking on player screen, if correct then checkmark,
 if incorrect then cross, otherwise display some partial mark and the number of points.

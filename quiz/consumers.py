@@ -126,7 +126,7 @@ class GameConsumer(WebsocketConsumer):
             }
             print(content)
             self.send_message(content)
-            # self.show_answer(data)
+            self.show_answer(data)
         except TextResponse.DoesNotExist:
             pass
 
