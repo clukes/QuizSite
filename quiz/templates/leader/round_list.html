@@ -6,7 +6,7 @@
   <ul>
     {% for round in round_list %}
       <li>
-        <a href="{{ round.get_absolute_url }}">{{ round.title }}</a>
+        <a href="{{ round.get_absolute_url }}">Round {{round.number}} - {{ round.title }}</a>
       </li>
     {% endfor %}
   </ul>

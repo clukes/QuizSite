@@ -125,6 +125,7 @@ from django.views.generic.edit import FormMixin
 class RoundListView(generic.ListView):
     model = Round
     template_name = 'leader/round_list.html'
+    ordering = ['number']
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect

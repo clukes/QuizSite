@@ -38,6 +38,8 @@ So the leader can easily see who hasn't answered.
 
 - Have bonus points
 
+- Add background image for rounds
+
 - In game, store scores for each player.
 
 - If leader has no username, redirect to username screen

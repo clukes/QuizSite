@@ -75,10 +75,12 @@ class GenericQuestion(models.Model):
         default='t',
     )
 
-
     # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     # object_id = models.PositiveIntegerField()
     # detail = GenericForeignKey('content_type', 'object_id')
+    class Meta:
+        unique_together = ('number', 'round')
+        ordering = ['number']
 
     def __str__(self):
         """String for representing the Model object."""
@@ -96,8 +98,12 @@ from django.urls import reverse # Used to generate URLs by reversing the URL pat
 
 class Round(models.Model):
     """Model representing a round"""
+    number = models.IntegerField()
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        ordering = ['number']
 
     def __str__(self):
         """String for representing the Model object."""
