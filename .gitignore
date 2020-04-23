@@ -83,7 +83,9 @@ target/
 *.pot
 *.pyc
 __pycache__/
+QuizSite/__pycache__/
 local_settings.py
+!quiz/migrations/__init__.py
 quiz/migrations
 
 .env
