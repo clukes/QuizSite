@@ -1,0 +1,129 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% if request.session.currentGameCode is None %}
+No current game
+{% else %}
+Room Code: {{request.session.currentGameCode}}
+<br>
+Username: {{request.session.username}}
+
+<br><br>
+<h4 id="questionNumber">No current question</h4>
+<div style="margin-left:20px;margin-top:20px">
+  <p><strong id='question'></strong></p>
+  <form id="form" action="" onsubmit="return false">
+    <p>Current answer: <span id="current-answer">{{ answer }}</span></p>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" id="question-id" name="question_id" value=""/>
+    <input id="set-answer" onclick="handleForm()" type="button" class="btn btn-success" value="Submit"/>
+  </form>
+</div>
+<div id="answers">
+<h4>Answers</h4>
+<div style="margin-left:20px;margin-top:20px" id="answer-display">
+
+</div>
+</div>
+{{ request.session.currentGameCode|json_script:"room-code" }}
+{{ request.session.userID|json_script:"userID"}}
+{{ request.session.username|json_script:"username"}}
+<script>
+  var form = document.getElementById("form");
+  form.style.display = "none";
+  var answers = document.getElementById("answers");
+  answers.style.display = "none";
+
+  const userID = JSON.parse(document.getElementById('userID').textContent);
+  const username = JSON.parse(document.getElementById('username').textContent);
+  const roomCode = JSON.parse(document.getElementById('room-code').textContent);
+
+  const chatSocket = new WebSocket(
+  'ws://'
+  + window.location.host
+  + '/ws/game/'
+  + roomCode
+  + '/'
+  );
+
+  get_question = function(userID) {
+    chatSocket.sendMessage({ command: 'get_question', userID: userID });
+  };
+
+  chatSocket.onopen = function() {
+    console.log( 'opened' );
+    get_question(userID);
+  }
+
+  chatSocket.sendMessage = function(data) {
+    try {
+      console.log( data );
+      chatSocket.send(JSON.stringify(data));
+    }
+    catch(err) {
+      console.log(err.message);
+    }
+  };
+
+
+  chatSocket.onmessage = function(e) {
+    console.log(e)
+    const data = JSON.parse(e.data);
+    const command = data.command;
+    if (command === 'question') {
+      question = data.question
+      console.log(question);
+      if(question.id) {
+        document.getElementById('question-id').value = question.id;
+        document.getElementById('questionNumber').innerHTML = "Question " + question.number;
+        document.getElementById('question').innerHTML = question.question;
+        console.log(data.marking);
+        if(data.marking === false) {
+          form.style.display = "block";
+          answers.style.display = "none";
+        }
+        else {
+          form.style.display = "none";
+          answers.style.display = "block";
+        }
+      }
+    }
+    else if (command === 'answer') {
+      answer = data.answer;
+      questionID = document.getElementById('question-id').value;
+      if(answer.username == username && answer.questionID == questionID) {
+        document.getElementById('current-answer').innerHTML = answer.answer;
+      }
+    }
+    else if (command === 'showAnswer') {
+      questionID = document.getElementById('question-id').value;
+      if(questionID == data.questionID) {
+        usernameElem = document.getElementById(data.username);
+        if(usernameElem === null) {
+          answers = document.getElementById('answer-display').innerHTML += data.answerHTML;
+        }
+        else {
+          usernameElem.innerHTML = data.answerHTML;
+        }
+      }
+    }
+  };
+
+  chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+  };
+
+  function handleForm(event) {
+    answer = document.getElementById('id_response').value;
+    questionID = document.getElementById('question-id').value
+    chatSocket.send(JSON.stringify({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer }));
+  };
+
+  document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
+
+
+</script>
+
+{% endif %}
+{% endblock %}

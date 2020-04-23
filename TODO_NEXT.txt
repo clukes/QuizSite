@@ -1,0 +1,54 @@
+- LEFTOFF: Done marking leader answers.
+- TODO: Show answers marking to players. When showing answer to player, check if answer is marked and display.
+When leader marks answer, update in database, then update the answer on players screen, by just reshowing the question.
+
+- Do show all answers button on leader screen so that it displays all answers to users at once.
+
+- Have a round start and round end screen:
+  Round Start: Show round info with background image.
+  Round End: Show player scores.
+
+- Setup channels so that when the leader pushes a button to show question,
+it shows players that question:
+- Show player a game starting screen when leader presses start game.
+- Add leave game button for player on game screen.
+
+
+- When displaying marking on player screen, if correct then checkmark,
+if incorrect then cross, otherwise display some partial mark and the number of points.
+
+- Leader can press button to display players answers, can display in the order they want.
+Answers will be displayed to players in that order.
+- Leader selects whether answer is correct or not, optionally enters a manual score, e.g. 0.5 points.
+- Scores are added to player totals.
+- Show scores to players at end of each round.
+- Show scores to leader all the time.
+
+- Back to question list button on leader question detail.
+
+- On leader question screen, list users first. As their answers come in, put the answer next to the user.
+So the leader can easily see who hasn't answered.
+- Keep player on current question on reload. Store current question in database.
+
+- Auto update everyones screen when someone leaves/joins the game.
+
+- Put in template of both leader and player: current room code, player list, scores
+
+- Do something about coming back and reusing username
+
+- Have bonus points
+
+- In game, store scores for each player.
+
+- If leader has no username, redirect to username screen
+
+- Test on mobile/tablet with different screen sizes
+
+- Tab the answers on both player and leader screens. Put in table so equally spaced.
+
+- When leader ends game, have all players go back to home.
+
+- When player on game page, check that they are actually in that game.
+
+- Add change username button
+- Check if username is already in use, if so give message saying that

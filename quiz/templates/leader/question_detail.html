@@ -1,0 +1,124 @@
+{% extends "leader/leader_base_generic.html" %}
+
+{% block content %}
+Room Code: {{ request.session.currentGameCode }}
+
+<h1>{{ genericquestion.round.title }}</h1>
+  <h2>Question {{genericquestion.number}}</h2>
+  <div style="margin-left:20px;margin-top:20px">
+    <p><strong>{{genericquestion.question}}</strong></p>
+
+    <p>Correct answer: {{genericquestion.get_detail.answer}}</p>
+  </div>
+{% if request.session.currentGameCode %}
+<br>
+<input id="show-question" type="button" class="btn btn-success" value="Show Question">
+<br>
+<br>
+<br>
+<input id="mark-question" type="button" class="btn btn-success" value="Mark Question">
+<br>
+<br>
+<h2>Answers</h2>
+{% for user, response in answers.items %}
+<form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
+  <strong>{{user}}</strong> - <span id="{{user}}">{{response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat}}</span> points)
+  <input type="hidden" name="responseID" value="{{response.id}}"/>
+  <input id="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
+  <label><input type="radio" name="mark" class="correct">Correct</label> &emsp;
+  <label><input type="radio" name="mark" class="incorrect">Incorrect</label> &emsp;
+  <label><input type="radio" name="mark" class="manual">
+      Manual Points: <input type="number" name="points" step="0.01" min="0" max="10" onclick="tickManual(event);">
+  </label> &emsp;
+  <input name="mark-answer" type="button" class="btn btn-success" onclick="markAnswer(event)" value="Mark">
+</form>
+<br><br>
+{% endfor %}
+<input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
+<p id='data'></p>
+{% endif %}
+{{ request.session.currentGameCode|json_script:"currentGameCode" }}
+{{ genericquestion.id|json_script:"questionID" }}
+<script>
+    const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
+    const questionID = JSON.parse(document.getElementById('questionID').textContent);
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/game/'
+        + roomCode
+        + '/'
+    );
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    chatSocket.onmessage = function(e) {
+      console.log(e)
+      const data = JSON.parse(e.data);
+      const command = data.command;
+      if (command === 'answer') {
+        answer = data.answer;
+        if(answer.username && answer.questionID == questionID) {
+          document.getElementById(answer.username).innerHTML = answer.answer;
+        }
+      }
+      else if (command === 'markedAnswer') {
+        responseID = data.responseID;
+        marking = data.marking;
+        points = data.points;
+        form = document.getElementById(responseID);
+        console.log(form);
+        form.querySelector('span[name="marking"]').innerHTML = marking;
+        form.querySelector('span[name="points"]').innerHTML = points;
+      }
+    };
+
+    document.querySelector('#show-question').onclick = function(e) {
+      chatSocket.send(JSON.stringify({ command: 'change_question', questionID: questionID, gameID: roomCode }));
+    };
+
+    document.querySelector('#mark-question').onclick = function(e) {
+      chatSocket.send(JSON.stringify({ command: 'mark_question', questionID: questionID, gameID: roomCode }));
+    };
+
+    function tickManual(e) {
+      e.toElement.parentElement.children[0].checked=true;
+    };
+
+    function showAnswer(event) {
+      form = event.toElement.parentElement;
+      responseID = form.querySelector('input[name="responseID"]').value;
+      chatSocket.send(JSON.stringify({ command: 'show_answer', responseID: responseID }));
+    };
+
+    function markAnswer(event) {
+      form = event.toElement.parentElement;
+      responseID = form.querySelector('input[name="responseID"]').value;
+      points = 0;
+      if(form.querySelector('.correct').checked) {
+        marking = 'c';
+        points = 1;
+      }
+      else if(form.querySelector('.incorrect').checked) {
+        marking = 'i';
+        points = 0;
+      }
+      else if(form.querySelector('.manual').checked) {
+        marking = 'p';
+        points = form.querySelector('input[name="points"]').value;
+        if(points === '') {
+          return false;
+        }
+      }
+      else {
+        return false;
+      }
+      chatSocket.send(JSON.stringify({ command: 'mark_answer', responseID: responseID, marking: marking, points: points}));
+    };
+
+</script>
+
+{% endblock %}

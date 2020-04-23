@@ -1,0 +1,23 @@
+{% extends "leader/leader_base_generic.html" %}
+
+{% block content %}
+<h1>Quiz Website</h1>
+
+<!-- If no game running -->
+{% if request.session.currentGameCode is None %}
+<form action="" method="post">
+  {% csrf_token %}
+  <input type="submit" id="create-game" name="create-game" class="btn btn-success" value="Create Game"/>
+</form>
+
+{% else %}
+<!-- If game running -->
+<p id="room-code"> Game is currently running.
+  Room Code: {{request.session.currentGameCode}}</p>
+  <form action="" method="post">
+    {% csrf_token %}
+    <input type="submit" id="end-game" name="end-game" class="btn btn-success" value="End Game"/>
+  </form>
+{% endif %}
+
+{% endblock %}
