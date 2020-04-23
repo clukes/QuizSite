@@ -86,7 +86,7 @@ __pycache__/
 QuizSite/__pycache__/
 local_settings.py
 !quiz/migrations/__init__.py
-quiz/migrations
+quiz/migrations/
 
 .env
 db.sqlite3
