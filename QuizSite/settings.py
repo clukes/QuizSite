@@ -140,6 +140,4 @@ CHANNEL_LAYERS = {
 #Heroku setup
 import django_heroku
 django_heroku.settings(locals())
-""" The comment is ignored by git on checkout #gitignore
 del DATABASES['default']['OPTIONS']['sslmode']
-""" #gitignore
