@@ -2,15 +2,13 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 
 # Create your views here.
-from quiz.models import TextResponse, Question, Round, Game, User
+from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore
 from quiz.forms import TextReponseForm, UsernameForm, JoinRoomForm
 from django.contrib import messages
 from django.db import IntegrityError
 
 def index(request):
     """View function for home page of site."""
-
-    name = request.session.get('name')
     if request.method == 'POST':
         if 'set-name' in request.POST:
             username_form = UsernameForm(request.POST)
@@ -20,8 +18,8 @@ def index(request):
                     user = User()
                     user.username = name
                     user.save()
-                    request.session['name'] = name
                     request.session['userID'] = user.id
+                    request.session['username'] = user.username
                 except IntegrityError as e:
                     messages.add_message(request, messages.ERROR, "Username not unique.")
                 return HttpResponseRedirect(reverse('index'))
@@ -36,12 +34,14 @@ def index(request):
                     if(game.active):
                         user.game = game
                         user.save()
+                        userScore, created = UserScore.objects.get_or_create(user=user, game=game)
                         request.session['currentGameCode'] = game.id
                     else:
                         messages.add_message(request, messages.ERROR, "The game has ended.")
                 except User.DoesNotExist:
                     messages.add_message(request, messages.ERROR, "User not in database.")
                     request.session['userID'] = None
+                    request.session['username'] = None
                     request.session['currentGameCode'] = None
                 except Game.DoesNotExist:
                     messages.add_message(request, messages.ERROR, "No game with that code.")
@@ -58,6 +58,7 @@ def index(request):
             except User.DoesNotExist:
                 messages.add_message(request, messages.ERROR, "User not in database.")
                 request.session['userID'] = None
+                request.session['username'] = None
             request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
 
@@ -66,7 +67,6 @@ def index(request):
         join_room_form = JoinRoomForm()
 
     context = {
-        'name': name,
         'username_form': username_form,
         'join_room_form': join_room_form,
     }
@@ -89,6 +89,7 @@ def leaderHome(request):
             except User.DoesNotExist:
                 messages.add_message(request, messages.ERROR, "User not in database.")
                 request.session['userID'] = None
+                request.session['username'] = None
                 request.session['currentGameCode'] = None
 
             return HttpResponseRedirect(reverse('leader-home'))
@@ -105,6 +106,7 @@ def leaderHome(request):
             except User.DoesNotExist:
                 messages.add_message(request, messages.ERROR, "User not in database.")
                 request.session['userID'] = None
+                request.session['username'] = None
             except Game.DoesNotExist:
                 messages.add_message(request, messages.ERROR, "No game running.")
 
@@ -133,28 +135,25 @@ class RoundDetailView(generic.DetailView):
     model = Round
     template_name = 'leader/round_detail.html'
 
-class QuestionDetailView(generic.DetailView, FormMixin):
-    model = Question
-    form_class = TextReponseForm
+class GenericQuestionDetailView(generic.DetailView):
+    model = GenericQuestion
     template_name = 'leader/question_detail.html'
 
-    def post(self, request, *args, **kwargs):
-        text_response_form = self.get_form()
-        if text_response_form.is_valid():
-            text_response = TextResponse()
-            text_response.response = text_response_form.cleaned_data['response']
-            question_id = request.POST.get('question_id')
-            text_response.question = Question.objects.get(id=question_id)
-
-            text_response.save()
-
-            return HttpResponseRedirect(request.path_info)
-        else:
-            return self.form_invalid(text_response_form)
-
     def get_context_data(self, **kwargs):
-        context = super(QuestionDetailView, self).get_context_data()
-        context['text_response_form'] = self.get_form()
+        context = super(GenericQuestionDetailView, self).get_context_data()
+        try:
+            gameID = self.request.session.get('currentGameCode')
+            game = Game.objects.get(id=gameID)
+            users = game.user_set.all()
+            question = self.get_object()
+            answers = {}
+            for user in users:
+                response = user.get_response(question)
+                print(response)
+                answers[user.username] = response
+            context['answers'] = answers
+        except Game.DoesNotExist:
+            messages.add_message(self.request, messages.ERROR, "No game running.")
         return context
 
 
@@ -166,13 +165,18 @@ def leader_room(request, room_code):
     })
 
 def player_game(request):
+    answer = ''
     try:
+        userID = request.session.get('userID')
+        user = User.objects.get(id=userID)
         gameID = request.session.get('currentGameCode')
         game = Game.objects.get(id=gameID)
         if(not game.active):
             messages.add_message(request, messages.ERROR, "Game has ended.")
             request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
+        if(game.currentQuestion):
+            answer = game.currentQuestion.get_detail().get_user_response(user, game)
     except Game.DoesNotExist:
         messages.add_message(request, messages.ERROR, "Game doesn't exist.")
         return HttpResponseRedirect(reverse('index'))
@@ -180,12 +184,23 @@ def player_game(request):
     if request.method == 'POST':
         text_response_form = TextReponseForm(request.POST)
         if text_response_form.is_valid():
-            return HttpResponseRedirect(reverse('player-room'))
+            questionID = request.POST.get('question_id')
+            question = GenericQuestion.objects.get(id=questionID)
+            text_response, created = TextResponse.objects.get_or_create(question=question.get_detail(), user=user, game=game)
+            text_response.response = text_response_form.cleaned_data['response']
+            text_response.save()
+
+            return HttpResponseRedirect(request.path_info)
+        else:
+            return self.form_invalid(text_response_form)
+
+        return HttpResponseRedirect(reverse('player-room'))
 
     else:
         text_response_form = TextReponseForm()
 
     context = {
         'form': text_response_form,
+        'answer': answer
     }
     return render(request, 'game.html', context=context);

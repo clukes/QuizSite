@@ -2,8 +2,8 @@
 
 {% block content %}
   <h1>Quiz Website</h1>
-  {% if name %}
-  <p>Username is {{name}}</p>
+  {% if request.session.username %}
+  <p>Username is {{request.session.username}}</p>
   <br>
     {% if request.session.currentGameCode is None %}
       <form action="" method="post">
@@ -26,15 +26,5 @@
     {{ username_form.as_p }}
     <input type="submit" name="set-name" class="btn btn-success" value="Set Name"/>
   </form>
-
   {% endif %}
-
-  {% if messages %}
-  <ul class="messages">
-      {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-      {% endfor %}
-  </ul>
-  {% endif %}
-
 {% endblock %}
