@@ -1,0 +1,16 @@
+{% extends "leader/leader_base_generic.html" %}
+
+{% block content %}
+  <h1>Quiz List</h1>
+  {% if quiz_list %}
+  <ul>
+    {% for quiz in quiz_list %}
+      <li>
+        <a href="{{ quiz.get_absolute_url }}">Quiz {{quiz.number}} - {{ quiz.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    <p>There are no quizzes.</p>
+  {% endif %}
+{% endblock %}
