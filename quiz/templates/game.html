@@ -76,7 +76,8 @@ Room Code: {{ request.session.currentGameCode }}
           console.log(answers);
           answers.style.display = "none";
           document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
-          document.getElementById('current-answer').innerHTML = data.answer;
+          document.getElementById("set-answer").onclick = handleForm;
+          document.getElementById("current-answer").innerHTML = data.answer;
         }
         else {
           form.style.display = "none";
