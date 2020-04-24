@@ -27,6 +27,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='game',
             name='current_screen',
-            field=models.CharField(choices=[('gs', 'Game Start'), ('qs', 'Quiz Start'), ('qe', 'Quiz End'), ('rs', 'Round Start'), ('re', 'Round End'), ('qa', 'Question Answering'), ('qm', 'Question Marking')], default='gs', max_length=1),
+            field=models.CharField(choices=[('gs', 'Game Start'), ('qs', 'Quiz Start'), ('qe', 'Quiz End'), ('rs', 'Round Start'), ('re', 'Round End'), ('qa', 'Question Answering'), ('qm', 'Question Marking')], default='gs', max_length=2),
         ),
     ]
