@@ -1,0 +1,16 @@
+<h4 id="questionNumber">No current question</h4>
+<div style="margin-left:20px;margin-top:20px">
+  <p><strong id='question'></strong></p>
+  <form id="form" action="" onsubmit="return false">
+    <p>Current answer: <span id="current-answer"></span></p>
+    <p><label for="id_response">Response:</label> <input type="text" name="response" maxlength="300" required id="id_response"> <span class="helptext">Enter your answer.</span></p>
+    <input type="hidden" id="question-id" name="question_id" value=""/>
+    <input id="set-answer" onclick="handleForm()" type="button" class="btn btn-success" value="Submit"/>
+  </form>
+</div>
+<div id="answers">
+  <h4>Answers</h4>
+  <div style="margin-left:20px;margin-top:20px" id="answer-display">
+
+  </div>
+</div>

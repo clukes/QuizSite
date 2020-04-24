@@ -34,7 +34,7 @@ def index(request):
                 try:
                     userID = request.session.get('userID')
                     user = User.objects.get(id=userID)
-                    gameID = join_room_form.cleaned_data['roomCode']
+                    gameID = join_room_form.cleaned_data['room_Code']
                     game = Game.objects.get(id=gameID)
                     if(game.active):
                         user.game = game
@@ -42,7 +42,7 @@ def index(request):
                         userScore, created = UserScore.objects.get_or_create(user=user, game=game)
                         request.session['currentGameCode'] = game.id
                     else:
-                        messages.add_message(request, messages.ERROR, "The game has ended.")
+                        messages.add_message(request, messages.ERROR, "This game has ended.")
                 except User.DoesNotExist:
                     messages.add_message(request, messages.ERROR, "User not in database.")
                     request.session['userID'] = None
@@ -67,9 +67,8 @@ def index(request):
             request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
 
-    else:
-        username_form = UsernameForm()
-        join_room_form = JoinRoomForm()
+    username_form = UsernameForm()
+    join_room_form = JoinRoomForm()
 
     context = {
         'username_form': username_form,
@@ -123,6 +122,19 @@ def leaderHome(request):
 
     return render(request, 'leader/index.html', context)
 
+def scores(request):
+    try:
+        gameID = request.session.get('currentGameCode')
+        game = Game.objects.get(id=gameID)
+        userScores = UserScore.objects.filter(game=game).order_by('-score', 'user')
+    except Game.DoesNotExist:
+        messages.add_message(request, messages.ERROR, "No game running.")
+        userScores = ""
+
+    context = {
+        'userScores': userScores
+    }
+    return render(request, 'leader/scores.html', context)
 
 class QuizListView(generic.ListView):
     model = Quiz
@@ -146,12 +158,11 @@ class GenericQuestionDetailView(generic.DetailView):
         try:
             gameID = self.request.session.get('currentGameCode')
             game = Game.objects.get(id=gameID)
-            users = game.user_set.all()
+            users = game.user_set.all().order_by('username')
             question = self.get_object()
             answers = {}
             for user in users:
                 response = user.get_response(question)
-                print(response)
                 answers[user.username] = response
             context['answers'] = answers
         except Game.DoesNotExist:
@@ -174,7 +185,7 @@ def player_game(request):
         gameID = request.session.get('currentGameCode')
         game = Game.objects.get(id=gameID)
         if(not game.active):
-            messages.add_message(request, messages.ERROR, "Game has ended.")
+            messages.add_message(request, messages.ERROR, "This game has ended.")
             request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
         if(game.currentQuestion):
@@ -182,27 +193,11 @@ def player_game(request):
     except Game.DoesNotExist:
         messages.add_message(request, messages.ERROR, "Game doesn't exist.")
         return HttpResponseRedirect(reverse('index'))
-
-    if request.method == 'POST':
-        text_response_form = TextReponseForm(request.POST)
-        if text_response_form.is_valid():
-            questionID = request.POST.get('question_id')
-            question = GenericQuestion.objects.get(id=questionID)
-            text_response, created = TextResponse.objects.get_or_create(question=question.get_detail(), user=user, game=game)
-            text_response.response = text_response_form.cleaned_data['response']
-            text_response.save()
-
-            return HttpResponseRedirect(request.path_info)
-        else:
-            return self.form_invalid(text_response_form)
-
-        return HttpResponseRedirect(reverse('player-room'))
-
-    else:
-        text_response_form = TextReponseForm()
+    except User.DoesNotExist:
+        messages.add_message(request, messages.ERROR, "User doesn't exist.")
+        return HttpResponseRedirect(reverse('index'))
 
     context = {
-        'form': text_response_form,
         'answer': answer
     }
     return render(request, 'game.html', context=context);

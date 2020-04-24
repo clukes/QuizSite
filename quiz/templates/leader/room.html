@@ -7,11 +7,18 @@
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
+        var protocol = '';
+        if (window.location.protocol === 'https:') {
+            protocol = 'wss:';
+        } else {
+            protocol = 'ws:';
+        }
+
         const chatSocket = new WebSocket(
-            'ws://'
+            protocol + '//'
             + window.location.host
             + '/ws/game/'
-            + roomName
+            + roomCode
             + '/'
         );
 

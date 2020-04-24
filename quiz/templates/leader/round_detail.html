@@ -2,19 +2,67 @@
 
 {% block content %}
   <h1>Round {{ round.number }} - {{ round.title }}</h1>
-
+  <input id="show-round-start" type="button" class="btn btn-success" onclick="showRoundStart(event)" value="Show Round Start Screen"> &emsp;
+  <input id="show-round-end" type="button" class="btn btn-success" onclick="showRoundEnd(event)" value="Show Round End Screen"> &emsp;
   <div style="margin-left:20px;margin-top:20px">
     <h4>Questions</h4>
     {% if round.genericquestion_set %}
     <ul>
-    {% for question in round.genericquestion_set.all %}
-    <li>
-      <a href="{{ question.get_absolute_url }}"><strong>{{ question.number }}.</strong> {{ question.question }}</a>
-    </li>
-    {% endfor %}
+      {% for question in round.genericquestion_set.all %}
+      <li>
+        <a href="{{ question.get_absolute_url }}"><strong>{{ question.number }}.</strong> {{ question.question }}</a>
+      </li>
+      {% endfor %}
     </ul
     {% else %}
     No questions
     {% endif %}
   </div>
+  {{ request.session.currentGameCode|json_script:"currentGameCode" }}
+  {{ round.id|json_script:"roundID" }}
+  <script>
+      const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
+      const roundID = JSON.parse(document.getElementById('roundID').textContent);
+
+      var protocol = '';
+      if (window.location.protocol === 'https:') {
+          protocol = 'wss:';
+      } else {
+          protocol = 'ws:';
+      }
+
+      const chatSocket = new WebSocket(
+          protocol + '//'
+          + window.location.host
+          + '/ws/game/'
+          + roomCode
+          + '/'
+      );
+
+      chatSocket.onopen = function() {
+        console.log( 'opened' );
+      };
+
+      chatSocket.sendMessage = function(data) {
+        try {
+          console.log( data );
+          chatSocket.send(JSON.stringify(data));
+        }
+        catch(err) {
+          console.log(err.message);
+        }
+      };
+
+      chatSocket.onclose = function(e) {
+          console.error('Chat socket closed unexpectedly');
+      };
+
+      function showRoundStart(event) {
+        chatSocket.sendMessage({ command: 'show_round_start', roundID: roundID, gameID: roomCode });
+      };
+
+      function showRoundEnd(event) {
+        chatSocket.sendMessage({ command: 'show_round_end', roundID: roundID, gameID: roomCode });
+      };
+  </script>
 {% endblock %}

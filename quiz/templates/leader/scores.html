@@ -1,0 +1,13 @@
+{% extends "leader/leader_base_generic.html" %}
+
+{% block content %}
+<h1>Room Code:  {{ request.session.currentGameCode }}</h1>
+  <h2>Scores</h2>
+  {% if userScores %}
+    {% for score in userScores %}
+      <p> {{ forloop.counter }}. {{score.user.username}} - {{score.score|default:"0"|floatformat:"-2"}} points </p>
+    {% endfor %}
+  {% else %}
+  <p>No scores</p>
+  {% endif %}
+{% endblock %}

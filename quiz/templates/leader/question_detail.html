@@ -1,8 +1,6 @@
 {% extends "leader/leader_base_generic.html" %}
 
 {% block content %}
-Room Code: {{ request.session.currentGameCode }}
-
 <h1>Round {{ genericquestion.round.number }} - {{ genericquestion.round.title }}</h1>
   <h2>Question {{genericquestion.number}}</h2>
   <div style="margin-left:20px;margin-top:20px">
@@ -22,7 +20,7 @@ Room Code: {{ request.session.currentGameCode }}
 <h2>Answers</h2>
 {% for user, response in answers.items %}
 <form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
-  <strong>{{user}}</strong> - <span id="{{user}}">{{response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat}}</span> points)
+  <strong>{{user}}</strong> - <span id="{{user}}">{{response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
   <input type="hidden" name="responseID" value="{{response.id}}"/>
   <input id="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
   <label><input type="radio" name="mark" class="correct">Correct</label> &emsp;
@@ -30,11 +28,16 @@ Room Code: {{ request.session.currentGameCode }}
   <label><input type="radio" name="mark" class="manual">
       Manual Points: <input type="number" name="points" step="0.01" min="0" max="10" onclick="tickManual(event);">
   </label> &emsp;
-  <input name="mark-answer" type="button" class="btn btn-success" onclick="markAnswer(event)" value="Mark">
+  <input name="mark-answer" type="button" class="btn btn-success" onclick="markAnswer(event)" value="Mark and Show">
+  <span name="error"></span>
 </form>
 <br><br>
 {% endfor %}
 <input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
+<br><br>
+Room Code: {{ request.session.currentGameCode }}
+<p>Players:<ul id="player-list"></ul>
+</p>
 <p id='data'></p>
 {% endif %}
 {{ request.session.currentGameCode|json_script:"currentGameCode" }}
@@ -43,16 +46,39 @@ Room Code: {{ request.session.currentGameCode }}
     const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
     const questionID = JSON.parse(document.getElementById('questionID').textContent);
 
+    var protocol = '';
+    if (window.location.protocol === 'https:') {
+        protocol = 'wss:';
+    } else {
+        protocol = 'ws:';
+    }
+
     const chatSocket = new WebSocket(
-        'ws://'
+        protocol + '//'
         + window.location.host
         + '/ws/game/'
         + roomCode
         + '/'
     );
 
+    chatSocket.onopen = function() {
+      console.log( 'opened' );
+      chatSocket.sendMessage({ command: 'get_player_list', gameID: roomCode });
+    };
+
+    chatSocket.sendMessage = function(data) {
+      try {
+        console.log( data );
+        chatSocket.send(JSON.stringify(data));
+      }
+      catch(err) {
+        console.log(err.message);
+      }
+    };
+
     chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
+        document.getElementById("player-list").innerHTML = "Not connected";
     };
 
     chatSocket.onmessage = function(e) {
@@ -67,21 +93,28 @@ Room Code: {{ request.session.currentGameCode }}
       }
       else if (command === 'markedAnswer') {
         responseID = data.responseID;
-        marking = data.marking;
-        points = data.points;
         form = document.getElementById(responseID);
-        console.log(form);
-        form.querySelector('span[name="marking"]').innerHTML = marking;
-        form.querySelector('span[name="points"]').innerHTML = points;
+        form.querySelector('span[name="marking"]').innerHTML = data.marking;
+        form.querySelector('span[name="points"]').innerHTML = data.points;
+      }
+      else if (command === 'playerList') {
+        document.getElementById("player-list").innerHTML = data.playerList;
+      }
+      else if (command === 'playerConnect') {
+        document.getElementById("player-list").innerHTML += "<li id='plist-" + data.username + "'>" + data.username + "</li>";
+      }
+      else if (command === 'playerDisconnect') {
+        var element = document.getElementById("plist-"+data.username);
+        element.parentNode.removeChild(element);
       }
     };
 
     document.querySelector('#show-question').onclick = function(e) {
-      chatSocket.send(JSON.stringify({ command: 'change_question', questionID: questionID, gameID: roomCode }));
+      chatSocket.sendMessage({ command: 'change_question', questionID: questionID, gameID: roomCode });
     };
 
     document.querySelector('#mark-question').onclick = function(e) {
-      chatSocket.send(JSON.stringify({ command: 'mark_question', questionID: questionID, gameID: roomCode }));
+      chatSocket.sendMessage({ command: 'mark_question', questionID: questionID, gameID: roomCode });
     };
 
     function tickManual(e) {
@@ -91,13 +124,14 @@ Room Code: {{ request.session.currentGameCode }}
     function showAnswer(event) {
       form = event.toElement.parentElement;
       responseID = form.querySelector('input[name="responseID"]').value;
-      chatSocket.send(JSON.stringify({ command: 'show_answer', responseID: responseID }));
+      chatSocket.sendMessage({ command: 'show_answer', responseID: responseID });
     };
 
     function markAnswer(event) {
       form = event.toElement.parentElement;
       responseID = form.querySelector('input[name="responseID"]').value;
       points = 0;
+      error = form.querySelector('span[name="error"]').innerHTML;
       if(form.querySelector('.correct').checked) {
         marking = 'c';
         points = 1;
@@ -110,14 +144,23 @@ Room Code: {{ request.session.currentGameCode }}
         marking = 'p';
         points = form.querySelector('input[name="points"]').value;
         if(points === '') {
+          error = "No points input.";
           return false;
         }
       }
       else {
+        error = "No marking selected.";
         return false;
       }
-      chatSocket.send(JSON.stringify({ command: 'mark_answer', responseID: responseID, marking: marking, points: points}));
+      error = "";
+      console.log(marking)
+      chatSocket.sendMessage({ command: 'mark_answer', responseID: responseID, marking: marking, points: points});
     };
+
+    function showAllAnswers(event) {
+      chatSocket.sendMessage({ command: 'show_all_answers', questionID: questionID, gameID: roomCode });
+    };
+
 
 </script>
 

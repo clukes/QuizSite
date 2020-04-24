@@ -2,6 +2,8 @@
 
 {% block content %}
   <h1>Quiz {{ quiz.number }} - {{ quiz.title }}</h1>
+  <input id="show-quiz-start" type="button" class="btn btn-success" onclick="showQuizStart(event)" value="Show Quiz Start Screen"> &emsp;
+  <input id="show-quiz-end" type="button" class="btn btn-success" onclick="showQuizEnd(event)" value="Show Quiz End Screen"> &emsp;
   <div style="margin-left:20px;margin-top:20px">
     <h4>Rounds</h4>
     {% if quiz.round_set %}
@@ -16,4 +18,53 @@
     <p>There are no rounds.</p>
     {% endif %}
   </div>
+  {{ request.session.currentGameCode|json_script:"currentGameCode" }}
+  {{ quiz.id|json_script:"quizID" }}
+  <script>
+      const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
+      const quizID = JSON.parse(document.getElementById('quizID').textContent);
+
+      var protocol = '';
+      if (window.location.protocol === 'https:') {
+          protocol = 'wss:';
+      } else {
+          protocol = 'ws:';
+      }
+
+      const chatSocket = new WebSocket(
+          protocol + '//'
+          + window.location.host
+          + '/ws/game/'
+          + roomCode
+          + '/'
+      );
+
+      chatSocket.onopen = function() {
+        console.log( 'opened' );
+      };
+
+      chatSocket.sendMessage = function(data) {
+        try {
+          console.log( data );
+          chatSocket.send(JSON.stringify(data));
+        }
+        catch(err) {
+          console.log(err.message);
+        }
+      };
+
+      chatSocket.onclose = function(e) {
+          console.error('Chat socket closed unexpectedly');
+      };
+
+      function showQuizStart(event) {
+        chatSocket.sendMessage({ command: 'show_quiz_start', quizID: quizID, gameID: roomCode });
+      };
+
+      function showQuizEnd(event) {
+        chatSocket.sendMessage({ command: 'show_quiz_end', quizID: quizID, gameID: roomCode });
+      };
+
+
+  </script>
 {% endblock %}

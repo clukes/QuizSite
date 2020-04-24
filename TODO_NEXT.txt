@@ -1,12 +1,23 @@
-- LEFTOFF: Done marking leader answers.
-- TODO: Show answers marking to players. When showing answer to player, check if answer is marked and display.
-When leader marks answer, update in database, then update the answer on players screen, by just reshowing the question.
+- LEFTOFF: Done quiz start and game start screens.
+- TODO: Round End/Quiz End screens.
 
-- Do show all answers button on leader screen so that it displays all answers to users at once.
+ISSUES:
+- Sort out channels not working over https / (Test)
+- Doesn't put your answer in as current answer when new answer is shown. / (Test)
+- Marking next question doesn't remove answers for previous question. / (Test)
+- When show question is pressed and answers on the screen, the answers don't go away. / (Test)
+- Why is points rounding to 1dp. Should be 2dp. / (Test)
+
+
+
+- On Round End/Quiz End screens, display scores of users one by one.
+
+- On player list, show who's answered. Have a counter, 3/6 peoples answered.
 
 - Have a round start and round end screen:
   Round Start: Show round info with background image.
   Round End: Show player scores.
+
 
 - Setup channels so that when the leader pushes a button to show question,
 it shows players that question:
@@ -40,9 +51,13 @@ So the leader can easily see who hasn't answered.
 
 - Do something about coming back and reusing username
 
+- Message when game ends should be popup, with button to return home.
+
 - Have bonus points
 
 - Add background image for rounds
+
+- Add date to game. Maybe start and end.
 
 - In game, store scores for each player.
 

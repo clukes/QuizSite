@@ -1,4 +1,5 @@
 {% extends "base_generic.html" %}
+{% load staticfiles %}
 
 {% block content %}
 {% if request.session.currentGameCode is None %}
@@ -9,120 +10,183 @@ Room Code: {{request.session.currentGameCode}}
 Username: {{request.session.username}}
 
 <br><br>
-<h4 id="questionNumber">No current question</h4>
-<div style="margin-left:20px;margin-top:20px">
-  <p><strong id='question'></strong></p>
-  <form id="form" action="" onsubmit="return false">
-    <p>Current answer: <span id="current-answer">{{ answer }}</span></p>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="hidden" id="question-id" name="question_id" value=""/>
-    <input id="set-answer" onclick="handleForm()" type="button" class="btn btn-success" value="Submit"/>
-  </form>
-</div>
-<div id="answers">
-<h4>Answers</h4>
-<div style="margin-left:20px;margin-top:20px" id="answer-display">
+<div id="current-screen">
 
 </div>
-</div>
+<br><br>
+Room Code: {{ request.session.currentGameCode }}
+<p>Players:<ul id="player-list"></ul>
+</p>
 {{ request.session.currentGameCode|json_script:"room-code" }}
 {{ request.session.userID|json_script:"userID"}}
 {{ request.session.username|json_script:"username"}}
 <script>
-  var form = document.getElementById("form");
-  form.style.display = "none";
-  var answers = document.getElementById("answers");
-  answers.style.display = "none";
+  $(document).ready(function() {
+      var currentScreen = document.getElementById("current-screen");
 
-  const userID = JSON.parse(document.getElementById('userID').textContent);
-  const username = JSON.parse(document.getElementById('username').textContent);
-  const roomCode = JSON.parse(document.getElementById('room-code').textContent);
+      const userID = JSON.parse(document.getElementById('userID').textContent);
+      const username = JSON.parse(document.getElementById('username').textContent);
+      const roomCode = JSON.parse(document.getElementById('room-code').textContent);
 
-  const chatSocket = new WebSocket(
-  'ws://'
-  + window.location.host
-  + '/ws/game/'
-  + roomCode
-  + '/'
-  );
+      var protocol = '';
+      if (window.location.protocol === 'https:') {
+          protocol = 'wss:';
+      } else {
+          protocol = 'ws:';
+      }
 
-  get_question = function(userID) {
-    chatSocket.sendMessage({ command: 'get_question', userID: userID });
-  };
+      const chatSocket = new WebSocket(
+          protocol + '//'
+          + window.location.host
+          + '/ws/game/'
+          + roomCode
+          + '/?userID=' + userID
+      );
 
-  chatSocket.onopen = function() {
-    console.log( 'opened' );
-    get_question(userID);
-  }
+      chatSocket.onopen = function() {
+        console.log( 'opened' );
+        chatSocket.sendMessage({ command: 'get_current_screen', userID: userID });
+        chatSocket.sendMessage({ command: 'get_player_list', gameID: roomCode });
+      };
 
-  chatSocket.sendMessage = function(data) {
-    try {
-      console.log( data );
-      chatSocket.send(JSON.stringify(data));
-    }
-    catch(err) {
-      console.log(err.message);
-    }
-  };
+      chatSocket.sendMessage = function(data) {
+        try {
+          console.log( data );
+          chatSocket.send(JSON.stringify(data));
+        }
+        catch(err) {
+          console.log(err.message);
+        }
+      };
 
+      chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+        document.getElementById("player-list").innerHTML = "Not connected";
+      };
 
-  chatSocket.onmessage = function(e) {
-    console.log(e)
-    const data = JSON.parse(e.data);
-    const command = data.command;
-    if (command === 'question') {
-      question = data.question
-      console.log(question);
-      if(question.id) {
+      function loadQuestion(data) {
+        question = data.question;
         document.getElementById('question-id').value = question.id;
         document.getElementById('questionNumber').innerHTML = "Question " + question.number;
         document.getElementById('question').innerHTML = question.question;
-        console.log(data.marking);
+        var form = document.getElementById("form");
+        var answers = document.getElementById("answers");
         if(data.marking === false) {
           form.style.display = "block";
+          console.log(answers);
           answers.style.display = "none";
+          document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
+          document.getElementById('current-answer').innerHTML = data.answer;
         }
         else {
           form.style.display = "none";
+          document.getElementById("answer-display").innerHTML = "";
           answers.style.display = "block";
         }
-      }
-    }
-    else if (command === 'answer') {
-      answer = data.answer;
-      questionID = document.getElementById('question-id').value;
-      if(answer.username == username && answer.questionID == questionID) {
-        document.getElementById('current-answer').innerHTML = answer.answer;
-      }
-    }
-    else if (command === 'showAnswer') {
-      questionID = document.getElementById('question-id').value;
-      if(questionID == data.questionID) {
-        usernameElem = document.getElementById(data.username);
-        if(usernameElem === null) {
-          answers = document.getElementById('answer-display').innerHTML += data.answerHTML;
+      };
+
+      chatSocket.onmessage = function(e) {
+        console.log(e)
+        const data = JSON.parse(e.data);
+        const command = data.command;
+        if(command === 'gameStart') {
+          $("#current-screen").load("{% static 'quiz/gameStart.html' %}");
         }
-        else {
-          usernameElem.innerHTML = data.answerHTML;
+        else if(command === 'quizStart') {
+          if(data.quizTitle) {
+            $("#current-screen").load("{% static 'quiz/quizStart.html' %}", function() {
+              document.getElementById('quizTitle').innerHTML = data.quizTitle;
+              document.getElementById('quizNumber').innerHTML = data.quizNumber;
+              document.getElementById('quizDesc').innerHTML = data.quizDesc;
+            });
+          }
         }
-      }
-    }
-  };
+        else if(command === 'quizEnd') {
+          if(data.quizTitle) {
+            $("#current-screen").load("{% static 'quiz/quizEnd.html' %}", function() {
+              document.getElementById('quizTitle').innerHTML = data.quizTitle;
+              document.getElementById('quizNumber').innerHTML = data.quizNumber;
+              document.getElementById('scores-display').innerHTML = data.scoresHTML;
+            });
+          }
+        }
+        else if(command === 'roundStart') {
+          if(data.roundTitle) {
+            $("#current-screen").load("{% static 'quiz/roundStart.html' %}", function() {
+              document.getElementById('roundTitle').innerHTML = data.roundTitle;
+              document.getElementById('roundNumber').innerHTML = data.roundNumber;
+              document.getElementById('roundDesc').innerHTML = data.roundDesc;
+            });
+          }
+        }
+        else if(command === 'roundEnd') {
+          if(data.roundTitle) {
+            $("#current-screen").load("{% static 'quiz/roundEnd.html' %}", function() {
+              document.getElementById('roundTitle').innerHTML = data.roundTitle;
+              document.getElementById('roundNumber').innerHTML = data.roundNumber;
+              document.getElementById('scores-display').innerHTML = data.scoresHTML;
+            });
+          }
+        }
+        else if (command === 'question') {
+          question = data.question
+          console.log(question);
+          if(question.id) {
+            if(document.getElementById('question-id')) {
+              loadQuestion(data);
+            }
+            else {
+              $("#current-screen").load("{% static 'quiz/showQuestion.html' %}", function() {
+                loadQuestion(data);
+              });
+            }
+          }
+        }
+        else if (command === 'answer') {
+          answer = data.answer;
+          questionID = document.getElementById('question-id').value;
+          if(answer.username == username && answer.questionID == questionID) {
+            document.getElementById('current-answer').innerHTML = answer.answer;
+          }
+        }
+        else if (command === 'showAnswer') {
+          questionID = document.getElementById('question-id').value;
+          if(questionID == data.questionID) {
+            usernameElem = document.getElementById(data.username);
+            if(usernameElem === null) {
+              document.getElementById('answer-display').innerHTML += data.answerHTML;
+            }
+            else {
+              usernameElem.innerHTML = data.answerHTML;
+            }
+          }
+        }
+        else if (command === 'showAllAnswers') {
+          questionID = document.getElementById('question-id').value;
+          if(questionID == data.questionID) {
+            document.getElementById('answer-display').innerHTML = data.answersHTML;
+          }
+        }
+        else if (command === 'playerList') {
+          document.getElementById("player-list").innerHTML = data.playerList;
+        }
+        else if (command === 'playerConnect') {
+          if(data.username !== username) {
+            document.getElementById("player-list").innerHTML += "<li id='plist-" + data.username + "'>" + data.username + "</li>";
+          }
+        }
+        else if (command === 'playerDisconnect') {
+          var element = document.getElementById("plist-"+data.username);
+          element.parentNode.removeChild(element);
+        }
+      };
 
-  chatSocket.onclose = function(e) {
-    console.error('Chat socket closed unexpectedly');
-  };
-
-  function handleForm(event) {
-    answer = document.getElementById('id_response').value;
-    questionID = document.getElementById('question-id').value
-    chatSocket.send(JSON.stringify({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer }));
-  };
-
-  document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
-
-
+      function handleForm(event) {
+        answer = document.getElementById('id_response').value;
+        questionID = document.getElementById('question-id').value
+        chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
+      };
+});
 </script>
 
 {% endif %}

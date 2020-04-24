@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from decimal import Decimal
+from django.template import defaultfilters
 
 QUESTION_TYPES = (
     ('t', 'Text'),
@@ -26,7 +27,7 @@ class TextResponse(models.Model):
         choices=MARKING_CHOICES,
         default='i',
     )
-    points = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         unique_together = ('question', 'user', 'game')
@@ -34,6 +35,9 @@ class TextResponse(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         return self.response
+
+    def get_points(self):
+        return defaultfilters.floatformat(self.points, "-2")
 
     def save(self, *args, **kwargs):
         # recalculate user score when points is changed
@@ -61,7 +65,7 @@ class TextQuestion(models.Model):
         return response
 
     def get_all_responses(self, game):
-        return self.textresponse_set.filter(game=game).all()
+        return self.textresponse_set.filter(game=game).all().order_by('user')
 
 class GenericQuestion(models.Model):
     """Model representing a Question."""
@@ -137,6 +141,10 @@ class Quiz(models.Model):
 class User(models.Model):
     username = models.CharField(max_length=200, unique=True)
     game = models.ForeignKey('Game', on_delete=models.SET_NULL, null=True)
+    connected = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['username']
 
     def __str__(self):
         """String for representing the Model object."""
@@ -148,10 +156,18 @@ class User(models.Model):
     def get_responses(self, game):
         return question.detail.get_user_responses(self, self.game)
 
+    def connect(self):
+        self.connected = True
+        self.save()
+
+    def disconnect(self):
+        self.connected = False
+        self.save()
+
 class UserScore(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE, null=False)
     game = models.ForeignKey('Game', on_delete=models.CASCADE, null=False)
-    score = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    score = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         unique_together = ('user', 'game')
@@ -160,14 +176,39 @@ class UserScore(models.Model):
         """String for representing the Model object."""
         return f'{self.user}: {self.score}'
 
+
 class Game(models.Model):
     """Model representing a game"""
     leader = models.ForeignKey('User', related_name='game_leader', on_delete=models.CASCADE, null=False)
     active = models.BooleanField(default=False)
+    currentQuiz = models.ForeignKey('Quiz', on_delete=models.SET_NULL, blank=True, null=True)
     currentRound = models.ForeignKey('Round', on_delete=models.SET_NULL, blank=True, null=True)
     currentQuestion = models.ForeignKey('GenericQuestion', on_delete=models.SET_NULL, blank=True, null=True)
-    marking = models.BooleanField(default=False)
+    # marking = models.BooleanField(default=False)
+
+    CURRENT_SCREEN_CHOICES = [
+        ('gs', 'Game Start'),
+        ('qs', 'Quiz Start'),
+        ('qe', 'Quiz End'),
+        ('rs', 'Round Start'),
+        ('re', 'Round End'),
+        ('qa', 'Question Answering'),
+        ('qm', 'Question Marking'),
+    ]
+    currentScreen = models.CharField(
+        max_length=1,
+        choices=CURRENT_SCREEN_CHOICES,
+        default='gs',
+        null=False,
+        blank=False
+    )
 
     def __str__(self):
         """String for representing the Model object."""
         return str(self.id)
+
+    def get_connected_players_list(self):
+        return self.user_set.filter(connected=True).values_list('username', flat=True).order_by('username')
+
+    def get_scores(self):
+        return UserScore.objects.filter(game=self).order_by('-score')
