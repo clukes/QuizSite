@@ -196,7 +196,7 @@ class Game(models.Model):
         ('qm', 'Question Marking'),
     ]
     currentScreen = models.CharField(
-        max_length=1,
+        max_length=2,
         choices=CURRENT_SCREEN_CHOICES,
         default='gs',
         null=False,
