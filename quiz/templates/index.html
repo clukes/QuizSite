@@ -16,7 +16,7 @@
       Room Code: <span class="text-warning">{{request.session.currentGameCode}}</span></p>
     <form action="" method="post">
         {% csrf_token %}
-        <input type="submit" name="enter-game" class="btn btn-success" value="Enter Game"/>&nbsp
+        <input type="submit"name="enter-game" class="btn btn-success mb-2 mb-md-0" value="Enter Game"/>&nbsp
         <input type="submit" name="leave-game" class="btn btn-success" value="Leave Game"/>
       </form>
     {% endif %}
