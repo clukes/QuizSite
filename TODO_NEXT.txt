@@ -8,7 +8,13 @@ ISSUES:
 - When show question is pressed and answers on the screen, the answers don't go away. / (Test)
 - Why is points rounding to 1dp. Should be 2dp. / (Test)
 
+URGENT ISSUES:
+- Clear text in answer box when going to new question.
+- Buttons on index screen on mobile stack and need a gap.
 
+NON URGENT ISSUES:
+- When leaving and rejoining, adds weird spacing.
+- Current answer shows when switching to another question.
 
 - On Round End/Quiz End screens, display scores of users one by one.
 
@@ -18,6 +24,7 @@ ISSUES:
   Round Start: Show round info with background image.
   Round End: Show player scores.
 
+- Tell leader what screen is currently shown.
 
 - Setup channels so that when the leader pushes a button to show question,
 it shows players that question:
@@ -26,6 +33,11 @@ it shows players that question:
 
 - Get show all answers button working on leader screen
 
+- Marking transition screen
+
+- Put people who are tied in the results with same ranking.
+
+- Make Quiz end more exciting. Have some animation, sparkles maybe. Podium, show results one by one.
 - Add next and previous buttons on question. Go to question with next number.
 - Add a game (different name maybe? quiz?) to collate the rounds into one group.
 
