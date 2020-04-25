@@ -92,6 +92,7 @@ No current game
           document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
           document.getElementById("set-answer").onclick = handleForm;
           document.getElementById("current-answer").innerHTML = data.answer;
+          document.getElementById('id_response').value = "";
           if(data.answer) {
             document.getElementById("current-answer-display").style.display="block";
           }
