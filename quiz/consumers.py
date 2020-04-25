@@ -252,7 +252,8 @@ class GameConsumer(WebsocketConsumer):
         try:
             question = GenericQuestion.objects.get(id=questionID)
             game = Game.objects.get(id=gameID)
-            answers = question.detail.get_all_responses(game)
+            users = game.user_set.all()
+            answers = question.detail.get_all_users_responses(users, game)
             content = {
                 'command': 'showAllAnswers',
                 'questionID': questionID,
@@ -308,7 +309,7 @@ class GameConsumer(WebsocketConsumer):
             gameID = data['gameID']
             game = Game.objects.get(id=gameID)
             playerList = list(game.get_connected_players_list())
-            formattedPlayerList = ''.join(map("<li id='plist-{0}'>{0}</li>".format, playerList))
+            formattedPlayerList = ''.join(map("<p id='plist-{0}'>{0}</p>".format, playerList))
             content = {
                 'command': 'playerList',
                 'playerList': formattedPlayerList
@@ -369,7 +370,7 @@ class GameConsumer(WebsocketConsumer):
             game.save()
 
             message = {
-                'command': 'quizStart',
+                'command': 'roundStart',
                 'roundTitle': round.title,
                 'roundNumber': round.number,
                 'roundDesc': round.description
@@ -414,16 +415,43 @@ class GameConsumer(WebsocketConsumer):
             'number': question.number,
             'question': question.question
         }
+    def construct_correct_icon(points):
+        return '<i class="fas fa-check-circle"></i>'
+
+    def construct_incorrect_icon(points):
+        return'<i class="fas fa-times-circle"></i>'
+
+    def construct_partial_icon(points):
+        numerator, denominator = points.as_integer_ratio()
+        return f"""<span class="fa-layers fa-fw">
+        <i class="fas fa-circle" style="color:darkorange"></i>
+         <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 left-3.25 up-1.5" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+        ">{numerator}</span>
+        <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 left-0.25" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+        ">/</span>
+        <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 up-1.5 right-0.1" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+        ">/</span>
+            <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 down-1.5 left-0.6" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+        ">/</span>
+        <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7.75 right-3 down-1.75" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+        ">{denominator}</span>
+         </span>"""
+
+
+    MARKING_ICONS = {
+        'c': construct_correct_icon,
+        'i': construct_incorrect_icon,
+        'p': construct_partial_icon
+    }
 
     def answer_to_html(self, response):
         username = response.user.username
         answer = response.response
-        marking = response.get_marking_display()
+        marking = self.MARKING_ICONS[response.marking](response.points)
         points = defaultfilters.floatformat(response.points, "-2")
-        html = (f"<span id=\"{username}\">"
+        html = (f"<span id='answers-{username}'>"
                 f"<strong>{username}</strong> - {answer} "
-                f"({marking}, {points} points)"
-                f"<br></span>")
+                f"{marking} ({points} points) <br></span>")
         return html
 
     def answers_to_html(self, answers):
@@ -433,7 +461,7 @@ class GameConsumer(WebsocketConsumer):
     def score_to_html(self, ranking, userScore):
         username = userScore.user.username
         points = defaultfilters.floatformat(userScore.score, "-2")
-        html = (f"<span id=\"{username}\">"
+        html = (f"<span id='scores-{username}'>"
                 f"<strong>{ranking}. {username}</strong> - {points} points"
                 f"<br></span>")
         return html

@@ -64,6 +64,9 @@ class TextQuestion(models.Model):
         response, created = self.textresponse_set.get_or_create(user=user, game=game)
         return response
 
+    def get_all_users_responses(self, users, game):
+        return self.textresponse_set.filter(user__in=users, game=game).all().order_by('user')
+
     def get_all_responses(self, game):
         return self.textresponse_set.filter(game=game).all().order_by('user')
 

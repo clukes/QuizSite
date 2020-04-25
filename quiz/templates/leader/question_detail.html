@@ -18,6 +18,7 @@
 <br>
 <br>
 <h2>Answers</h2>
+<p style="text-align:left !important;">
 {% for user, response in answers.items %}
 <form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
   <strong>{{user}}</strong> - <span id="{{user}}">{{response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
@@ -33,13 +34,22 @@
 </form>
 <br><br>
 {% endfor %}
+</p>
 <input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
 <br><br>
-Room Code: {{ request.session.currentGameCode }}
-<p>Players:<ul id="player-list"></ul>
-</p>
 <p id='data'></p>
 {% endif %}
+{% endblock %}
+
+{% block roomCode %}
+{{ request.session.currentGameCode }}
+{% endblock %}
+
+{% block playerList %}
+<p id="player-list"></p>
+{% endblock %}
+
+{% block scripts %}
 {{ request.session.currentGameCode|json_script:"currentGameCode" }}
 {{ genericquestion.id|json_script:"questionID" }}
 <script>
@@ -163,5 +173,4 @@ Room Code: {{ request.session.currentGameCode }}
 
 
 </script>
-
 {% endblock %}

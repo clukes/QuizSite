@@ -1,0 +1,15 @@
+.btn {
+  border-radius: .25rem;
+}
+
+.fa-check-circle {
+  color: limegreen;
+}
+
+.fa-times-circle {
+  color: tomato;
+}
+
+html { height: 100%; }
+body { height: 100%; display: flex; }
+body > div { flex: 1; }

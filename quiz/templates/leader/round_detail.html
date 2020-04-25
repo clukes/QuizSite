@@ -18,6 +18,8 @@
     No questions
     {% endif %}
   </div>
+  {% endblock %}
+  {% block scripts %}
   {{ request.session.currentGameCode|json_script:"currentGameCode" }}
   {{ round.id|json_script:"roundID" }}
   <script>

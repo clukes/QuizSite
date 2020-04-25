@@ -1,22 +1,36 @@
 {% extends "base_generic.html" %}
 {% load staticfiles %}
 
+{% block style %}
+<style>
+#plist-{{ request.session.username}} {color: lime;}
+#scores-{{ request.session.username}} {color: lime;}
+#answers-{{ request.session.username}} {color: lime;}
+</style>
+{% endblock %}
+
 {% block content %}
 {% if request.session.currentGameCode is None %}
 No current game
 {% else %}
-Room Code: {{request.session.currentGameCode}}
-<br>
-Username: {{request.session.username}}
-
-<br><br>
 <div id="current-screen">
-
+  <h1> Game Loading</h1>
+  <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
 </div>
-<br><br>
-Room Code: {{ request.session.currentGameCode }}
-<p>Players:<ul id="player-list"></ul>
-</p>
+{% endif %}
+{% endblock %}
+
+{% block roomCode %}
+{{ request.session.currentGameCode }}
+{% endblock %}
+
+{% block playerList %}
+<p id="player-list"></p>
+{% endblock %}
+
+{% block scripts %}
+{% if request.session.currentGameCode is None %}
+{% else %}
 {{ request.session.currentGameCode|json_script:"room-code" }}
 {{ request.session.userID|json_script:"userID"}}
 {{ request.session.username|json_script:"username"}}
@@ -78,6 +92,9 @@ Room Code: {{ request.session.currentGameCode }}
           document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
           document.getElementById("set-answer").onclick = handleForm;
           document.getElementById("current-answer").innerHTML = data.answer;
+          if(data.answer) {
+            document.getElementById("current-answer-display").style.display="block";
+          }
         }
         else {
           form.style.display = "none";
@@ -148,12 +165,15 @@ Room Code: {{ request.session.currentGameCode }}
           questionID = document.getElementById('question-id').value;
           if(answer.username == username && answer.questionID == questionID) {
             document.getElementById('current-answer').innerHTML = answer.answer;
+            if(answer.answer) {
+              document.getElementById("current-answer-display").style.display="block";
+            }
           }
         }
         else if (command === 'showAnswer') {
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
-            usernameElem = document.getElementById(data.username);
+            usernameElem = document.getElementById('answers-' + data.username);
             if(usernameElem === null) {
               document.getElementById('answer-display').innerHTML += data.answerHTML;
             }
@@ -173,7 +193,7 @@ Room Code: {{ request.session.currentGameCode }}
         }
         else if (command === 'playerConnect') {
           if(data.username !== username) {
-            document.getElementById("player-list").innerHTML += "<li id='plist-" + data.username + "'>" + data.username + "</li>";
+            document.getElementById("player-list").innerHTML += "<span id='plist-" + data.username + "'>" + data.username + "</span><br>";
           }
         }
         else if (command === 'playerDisconnect') {

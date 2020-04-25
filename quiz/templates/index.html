@@ -1,19 +1,19 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>Quiz Website</h1>
+  <h1 class="text-danger">Quiz Website</h1>
   {% if request.session.username %}
-  <p>Username is {{request.session.username}}</p>
+  <p>Username is <span class="text-info">{{request.session.username}}</span></p>
   <br>
     {% if request.session.currentGameCode is None %}
       <form action="" method="post">
         {% csrf_token %}
-        {{ join_room_form.as_p }}
-        <input type="submit" name="join-room" class="btn btn-success" value="Join Room"/>
+        <p>Enter a room code:<br> {{ join_room_form.room_Code }}</p>
+        <p><input type="submit" name="join-room" class="btn btn-success" value="Join Room"/></p>
       </form>
     {% else %}
     <p> Currently in game.
-      Room Code: {{request.session.currentGameCode}}</p>
+      Room Code: <span class="text-warning">{{request.session.currentGameCode}}</span></p>
     <form action="" method="post">
         {% csrf_token %}
         <input type="submit" name="enter-game" class="btn btn-success" value="Enter Game"/>
@@ -21,10 +21,13 @@
       </form>
     {% endif %}
   {% else %}
+  <br>
   <form action="" method="post">
     {% csrf_token %}
-    {{ username_form.as_p }}
-    <input type="submit" name="set-name" class="btn btn-success" value="Set Name"/>
+    <p>Enter your username:<br> {{ username_form.username }}</p>
+    <p><input type="submit" name="set-name" class="btn btn-success" value="Set Name"/></p>
   </form>
   {% endif %}
 {% endblock %}
+
+{% block playerDisplay %} {% endblock %}

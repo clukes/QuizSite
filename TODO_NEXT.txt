@@ -39,6 +39,8 @@ Answers will be displayed to players in that order.
 - Show scores to players at end of each round.
 - Show scores to leader all the time.
 
+- Show correct answer button
+
 - Back to question list button on leader question detail.
 
 - On leader question screen, list users first. As their answers come in, put the answer next to the user.

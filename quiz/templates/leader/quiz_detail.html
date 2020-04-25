@@ -18,6 +18,9 @@
     <p>There are no rounds.</p>
     {% endif %}
   </div>
+  {% endblock %}
+  
+  {% block scripts %}
   {{ request.session.currentGameCode|json_script:"currentGameCode" }}
   {{ quiz.id|json_script:"quizID" }}
   <script>
