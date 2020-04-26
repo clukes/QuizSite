@@ -85,6 +85,7 @@ No current game
         document.getElementById('question').innerHTML = question.question;
         var form = document.getElementById("form");
         var answers = document.getElementById("answers");
+        document.getElementById('correct-answer-display').style.display = "none";
         if(data.marking === false) {
           form.style.display = "block";
           console.log(answers);
@@ -187,6 +188,13 @@ No current game
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
             document.getElementById('answer-display').innerHTML = data.answersHTML;
+          }
+        }
+        else if (command === 'correctAnswer') {
+          questionID = document.getElementById('question-id').value;
+          if(questionID == data.questionID) {
+            document.getElementById('correct-answer-display').style.display="block";
+            document.getElementById('correct-answer').innerHTML = data.answer;
           }
         }
         else if (command === 'playerList') {

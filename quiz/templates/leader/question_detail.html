@@ -3,10 +3,12 @@
 {% block content %}
 <h1>Round {{ genericquestion.round.number }} - {{ genericquestion.round.title }}</h1>
   <h2>Question {{genericquestion.number}}</h2>
-  <div style="margin-left:20px;margin-top:20px">
+  <div style="margin-top:20px">
     <p><strong>{{genericquestion.question}}</strong></p>
 
-    <p>Correct answer: {{genericquestion.get_detail.answer}}</p>
+    <p>Correct answer: {{genericquestion.get_detail.answer}}<br>
+    <input id="show-correct" type="button" class="btn btn-success" onclick="showCorrectAnswer(event)" value="Show Correct Answer">
+    </p>
   </div>
 {% if request.session.currentGameCode %}
 <br>
@@ -171,6 +173,9 @@
       chatSocket.sendMessage({ command: 'show_all_answers', questionID: questionID, gameID: roomCode });
     };
 
+    function showCorrectAnswer(event) {
+      chatSocket.sendMessage({ command: 'show_correct_answer', questionID: questionID, answer: "{{genericquestion.get_detail.answer}}" });
+    }
 
 </script>
 {% endblock %}

@@ -272,7 +272,16 @@ class GameConsumer(WebsocketConsumer):
                 'question': {}
             }
 
+        self.send_message_to_group(content)
 
+    def show_correct_answer(self, data):
+        questionID = data['questionID']
+        answer = data['answer']
+        content = {
+            'command': 'correctAnswer',
+            'questionID': questionID,
+            'answer': answer
+        }
         self.send_message_to_group(content)
 
     def set_text_answer(self, data):
@@ -480,6 +489,7 @@ class GameConsumer(WebsocketConsumer):
             'show_answer': show_answer,
             'mark_answer': mark_answer,
             'show_all_answers': show_all_answers,
+            'show_correct_answer': show_correct_answer,
             'get_player_list': get_player_list,
             'show_quiz_start': show_quiz_start,
             'show_quiz_end': show_quiz_end,
