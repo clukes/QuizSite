@@ -9,8 +9,8 @@ ISSUES:
 - Why is points rounding to 1dp. Should be 2dp. / (Test)
 
 URGENT ISSUES:
-- Clear text in answer box when going to new question.
-- Buttons on index screen on mobile stack and need a gap.
+- Clear text in answer box when going to new question. /
+- Buttons on index screen on mobile stack and need a gap. /
 
 NON URGENT ISSUES:
 - When leaving and rejoining, adds weird spacing.
@@ -18,11 +18,17 @@ NON URGENT ISSUES:
 
 - On Round End/Quiz End screens, display scores of users one by one.
 
+- Red outline on textbox on firefox.
+
+- On mobile, make sure player list isn't making question space smaller. Put space between bottom and player list and mobile.
+
 - On player list, show who's answered. Have a counter, 3/6 peoples answered.
 
 - Have a round start and round end screen:
   Round Start: Show round info with background image.
   Round End: Show player scores.
+
+- Question too close to home button on mobile.
 
 - Tell leader what screen is currently shown.
 
@@ -32,6 +38,8 @@ it shows players that question:
 - Add leave game button for player on game screen.
 
 - Get show all answers button working on leader screen
+
+- Maybe put timeout so if people still in game, on index screen if game ended then say that.
 
 - Marking transition screen
 
