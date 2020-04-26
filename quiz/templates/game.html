@@ -169,8 +169,8 @@ No current game
             document.getElementById('current-answer').innerHTML = answer.answer;
             if(answer.answer) {
               document.getElementById("current-answer-display").style.display="block";
+              document.getElementById('id_response').value = "";
             }
-            document.getElementById('id_response').value = "";
           }
         }
         else if (command === 'showAnswer') {
