@@ -6,6 +6,12 @@
 #plist-{{ request.session.username}} {color: lime;}
 #scores-{{ request.session.username}} {color: lime;}
 #answers-{{ request.session.username}} {color: lime;}
+#page-row {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
 </style>
 {% endblock %}
 
@@ -37,7 +43,7 @@ No current game
 <script>
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
-
+      var onRoundStart = false;
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
@@ -80,15 +86,19 @@ No current game
 
       function loadQuestion(data) {
         question = data.question;
+        console.log(question);
         document.getElementById('question-id').value = question.id;
         document.getElementById('questionNumber').innerHTML = "Question " + question.number;
         document.getElementById('question').innerHTML = question.question;
+        if(question.type == 'i') {
+          document.getElementById('image').style.display="block";
+          document.getElementById('questionImg').src = question.image;
+        }
         var form = document.getElementById("form");
         var answers = document.getElementById("answers");
         document.getElementById('correct-answer-display').style.display = "none";
         if(data.marking === false) {
           form.style.display = "block";
-          console.log(answers);
           answers.style.display = "none";
           document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
           document.getElementById("set-answer").onclick = handleForm;
@@ -109,6 +119,11 @@ No current game
         console.log(e)
         const data = JSON.parse(e.data);
         const command = data.command;
+        if(onRoundStart && !command.includes("player")) {
+          document.getElementById('page-row').style.backgroundImage = "";
+          onRoundStart = false;
+        }
+
         if(command === 'gameStart') {
           $("#current-screen").load("{% static 'quiz/gameStart.html' %}");
         }
@@ -133,9 +148,18 @@ No current game
         else if(command === 'roundStart') {
           if(data.roundTitle) {
             $("#current-screen").load("{% static 'quiz/roundStart.html' %}", function() {
+              onRoundStart = true;
               document.getElementById('roundTitle').innerHTML = data.roundTitle;
               document.getElementById('roundNumber').innerHTML = data.roundNumber;
               document.getElementById('roundDesc').innerHTML = data.roundDesc;
+              if(data.roundImg) {
+                document.getElementById('round-container').style.background = "rgba(0, 0, 0, 0.75)";
+                document.getElementById('page-row').style.backgroundImage = "url('" + data.roundImg + "')";
+                fadeIn(document.getElementById('page-row'));
+              }
+              else {
+                // document.getElementById('roundImg').style.display = "none";
+              }
             });
           }
         }
@@ -150,7 +174,6 @@ No current game
         }
         else if (command === 'question') {
           question = data.question
-          console.log(question);
           if(question.id) {
             if(document.getElementById('question-id')) {
               loadQuestion(data);
@@ -217,7 +240,19 @@ No current game
         questionID = document.getElementById('question-id').value
         chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
       };
+
+      function fadeIn(element) {
+          element.style.opacity = 0;
+          var tick = function () {
+              element.style.opacity = +element.style.opacity + 0.0075;
+              if (+element.style.opacity < 1) {
+                  (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16)
+              }
+          };
+          tick();
+      }
 });
+
 </script>
 
 {% endif %}

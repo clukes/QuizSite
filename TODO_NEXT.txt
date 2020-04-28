@@ -1,83 +1,54 @@
-- LEFTOFF: Done quiz start and game start screens.
-- TODO: Round End/Quiz End screens.
+- LEFTOFF:
+- TODO:
 
-ISSUES:
-- Sort out channels not working over https / (Test)
-- Doesn't put your answer in as current answer when new answer is shown. / (Test)
-- Marking next question doesn't remove answers for previous question. / (Test)
-- When show question is pressed and answers on the screen, the answers don't go away. / (Test)
-- Why is points rounding to 1dp. Should be 2dp. / (Test)
+- PUT QUIZ SITE V2.0 WHEN PLAY NEXT TIME
 
-URGENT ISSUES:
-- Clear text in answer box when going to new question. /
-- Buttons on index screen on mobile stack and need a gap. /
+ROUND PRIORITY LIST:
+- Multiple Choice.
+- Video/Audio.
+
+- TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
+- FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
 NON URGENT ISSUES:
 - When leaving and rejoining, adds weird spacing.
 - Current answer shows when switching to another question.
+- Red outline on textbox on firefox.
+- On mobile, make sure player list isn't making question space smaller. Put space between bottom and player list and mobile.
+- On mobile, quiz end screen hits top of screen and looks weird.
+- Fraction is not aligned when zoomed in. Change the slash into one big slash.
+- Question too close to home button on mobile.
+
 
 - On Round End/Quiz End screens, display scores of users one by one.
 
-- Red outline on textbox on firefox.
-
-- On mobile, make sure player list isn't making question space smaller. Put space between bottom and player list and mobile.
-
 - On player list, show who's answered. Have a counter, 3/6 peoples answered.
 
-- Have a round start and round end screen:
-  Round Start: Show round info with background image.
-  Round End: Show player scores.
-
-- Question too close to home button on mobile.
+- Message when game ends should be popup, with button to return home.
 
 - Tell leader what screen is currently shown.
 
-- Setup channels so that when the leader pushes a button to show question,
-it shows players that question:
-- Show player a game starting screen when leader presses start game.
-- Add leave game button for player on game screen.
+- Tab the answers on both player and leader screens. Put in table so equally spaced.
 
-- Get show all answers button working on leader screen
-
-- Maybe put timeout so if people still in game, on index screen if game ended then say that.
+- Maybe put timeout so if people still in game, on home screen if game ended then say that.
 
 - Marking transition screen
 
 - Put people who are tied in the results with same ranking.
 
 - Make Quiz end more exciting. Have some animation, sparkles maybe. Podium, show results one by one.
+
 - Add next and previous buttons on question. Go to question with next number.
-- Add a game (different name maybe? quiz?) to collate the rounds into one group.
-
-- When displaying marking on player screen, if correct then checkmark,
-if incorrect then cross, otherwise display some partial mark and the number of points.
-
-- Leader can press button to display players answers, can display in the order they want.
-Answers will be displayed to players in that order.
-- Leader selects whether answer is correct or not, optionally enters a manual score, e.g. 0.5 points.
-- Scores are added to player totals.
-- Show scores to players at end of each round.
-- Show scores to leader all the time.
-
-- Show correct answer button
 
 - Back to question list button on leader question detail.
 
-- On leader question screen, list users first. As their answers come in, put the answer next to the user.
-So the leader can easily see who hasn't answered.
-- Keep player on current question on reload. Store current question in database.
+- Do something about coming back and reusing username.
 
-- Auto update everyones screen when someone leaves/joins the game.
+- Have bonus points.
 
-- Put in template of both leader and player: current room code, player list, scores
+- Maybe overlay text on image on round start screen.
 
-- Do something about coming back and reusing username
-
-- Message when game ends should be popup, with button to return home.
-
-- Have bonus points
-
-- Add background image for rounds
+- Add background image for rounds.
 
 - Add date to game. Maybe start and end.
 
@@ -85,13 +56,6 @@ So the leader can easily see who hasn't answered.
 
 - If leader has no username, redirect to username screen
 
-- Test on mobile/tablet with different screen sizes
-
-- Tab the answers on both player and leader screens. Put in table so equally spaced.
-
-- When leader ends game, have all players go back to home.
-
 - When player on game page, check that they are actually in that game.
 
 - Add change username button
-- Check if username is already in use, if so give message saying that

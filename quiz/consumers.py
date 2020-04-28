@@ -2,7 +2,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from quiz.models import GenericQuestion, User, Game, TextResponse, User, Quiz, Round
+from quiz.models import GenericQuestion, User, Game, GenericResponse, TextResponse, User, Quiz, Round
 from django.template import defaultfilters
 from django.db import close_old_connections
 from urllib.parse import parse_qs
@@ -98,7 +98,8 @@ class GameConsumer(WebsocketConsumer):
             'command': 'roundStart',
             'roundTitle': round.title,
             'roundNumber': round.number,
-            'roundDesc': round.description
+            'roundDesc': round.description,
+            'roundImg': round.background_image_url
         }
         self.send_message(message)
 
@@ -135,7 +136,7 @@ class GameConsumer(WebsocketConsumer):
         user = data['user']
         game = data['game']
         question = game.currentQuestion
-        answer = question.get_detail().get_user_response(user, game).response
+        answer = question.get_user_response(user, game).get_response()
         content = {
             'command': 'question',
             'question': self.question_to_json(question),
@@ -208,14 +209,14 @@ class GameConsumer(WebsocketConsumer):
     def show_answer(self, data):
         responseID = data['responseID']
         try:
-            response = TextResponse.objects.get(id=responseID)
+            response = GenericResponse.objects.get(id=responseID)
             content = {
                 'command': 'showAnswer',
-                'questionID': response.question.generic_question.id,
+                'questionID': response.question.id,
                 'username': response.user.username,
                 'answerHTML': self.answer_to_html(response)
             }
-        except TextResponse.DoesNotExist:
+        except GenericResponse.DoesNotExist:
             print("Game does not exist")
             content = {
                 'command': 'showAnswer',
@@ -230,7 +231,7 @@ class GameConsumer(WebsocketConsumer):
             responseID = data['responseID']
             marking = data['marking']
             points = data['points']
-            response = TextResponse.objects.get(id=responseID)
+            response = GenericResponse.objects.get(id=responseID)
             response.marking = marking
             response.points = points
             response.save()
@@ -243,7 +244,7 @@ class GameConsumer(WebsocketConsumer):
             print(content)
             self.send_message(content)
             self.show_answer(data)
-        except TextResponse.DoesNotExist:
+        except GenericResponse.DoesNotExist:
             pass
 
     def show_all_answers(self, data):
@@ -253,7 +254,7 @@ class GameConsumer(WebsocketConsumer):
             question = GenericQuestion.objects.get(id=questionID)
             game = Game.objects.get(id=gameID)
             users = game.user_set.all()
-            answers = question.detail.get_all_users_responses(users, game)
+            answers = question.get_all_users_responses(users, game)
             content = {
                 'command': 'showAllAnswers',
                 'questionID': questionID,
@@ -293,10 +294,16 @@ class GameConsumer(WebsocketConsumer):
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.type == 't'):
-                response, created = TextResponse.objects.get_or_create(user=user, question=question.detail, game=game)
-                response.response = answer
-                response.save()
+            if(question.type in ['t', 'i']):
+                response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
+                if response.response_detail is None:
+                    text_response = TextResponse(response=answer)
+                    text_response.save()
+                    response.add_response(text_response)
+                else:
+                    response_detail = response.response_detail
+                    response_detail.response = answer
+                    response_detail.save()
                 content = {
                     'username': user.username,
                     'answer': answer,
@@ -304,7 +311,7 @@ class GameConsumer(WebsocketConsumer):
                 }
             else:
                 content = {}
-        except (User.DoesNotExist, GenericQuestion.DoesNotExist, Game.DoesNotExist) as e:
+        except (User.DoesNotExist, GenericQuestion.DoesNotExist, TextResponse.DoesNotExist, Game.DoesNotExist) as e:
             content = {}
 
         message = {
@@ -382,7 +389,8 @@ class GameConsumer(WebsocketConsumer):
                 'command': 'roundStart',
                 'roundTitle': round.title,
                 'roundNumber': round.number,
-                'roundDesc': round.description
+                'roundDesc': round.description,
+                'roundImg': round.background_image_url
             }
         except (Round.DoesNotExist, Game.DoesNotExist) as e:
             message = {}
@@ -418,11 +426,15 @@ class GameConsumer(WebsocketConsumer):
     def question_to_json(self, question):
         if(question is None):
             return None
-
+        image = None
+        if question.type == 'i':
+            image = question.detail.image_url
         return {
             'id': question.id,
             'number': question.number,
-            'question': question.question
+            'question': question.question,
+            'type': question.type,
+            'image': image
         }
     def construct_correct_icon(points):
         return '<i class="fas fa-check-circle"></i>'
@@ -455,7 +467,7 @@ class GameConsumer(WebsocketConsumer):
 
     def answer_to_html(self, response):
         username = response.user.username
-        answer = response.response
+        answer = response.get_response()
         marking = self.MARKING_ICONS[response.marking](response.points)
         points = defaultfilters.floatformat(response.points, "-2")
         html = (f"<span id='answers-{username}'>"
@@ -553,7 +565,7 @@ class GameConsumer(WebsocketConsumer):
             questionID = message['question']['id']
             try:
                 question = GenericQuestion.objects.get(id=questionID)
-                answer = question.get_detail().get_user_response(user, user.game).response
+                answer = question.get_user_response(user, user.game).get_response()
             except GenericQuestion.DoesNotExist:
                 pass
         message['answer'] = answer

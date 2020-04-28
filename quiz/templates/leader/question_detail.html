@@ -4,9 +4,12 @@
 <h1>Round {{ genericquestion.round.number }} - {{ genericquestion.round.title }}</h1>
   <h2>Question {{genericquestion.number}}</h2>
   <div style="margin-top:20px">
+    {% if genericquestion.detail.image_url %}
+    <p><img src="{{genericquestion.detail.image_url}}" alt="Question Image" style="width:75%;"></p>
+    {% endif %}
     <p><strong>{{genericquestion.question}}</strong></p>
 
-    <p>Correct answer: {{genericquestion.get_detail.answer}}<br>
+    <p>Correct answer: {{genericquestion.answer}}<br>
     <input id="show-correct" type="button" class="btn btn-success" onclick="showCorrectAnswer(event)" value="Show Correct Answer">
     </p>
   </div>
@@ -23,7 +26,7 @@
 <p style="text-align:left !important;">
 {% for user, response in answers.items %}
 <form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
-  <strong>{{user}}</strong> - <span id="{{user}}">{{response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
+  <strong>{{user}}</strong> - <span id="{{user}}">{{response.get_response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
   <input type="hidden" name="responseID" value="{{response.id}}"/>
   <input id="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
   <label><input type="radio" name="mark" class="correct">Correct</label> &emsp;
@@ -36,8 +39,8 @@
 </form>
 <br><br>
 {% endfor %}
-</p>
 <input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
+</p>
 <br><br>
 <p id='data'></p>
 {% endif %}
@@ -174,7 +177,7 @@
     };
 
     function showCorrectAnswer(event) {
-      chatSocket.sendMessage({ command: 'show_correct_answer', questionID: questionID, answer: "{{genericquestion.get_detail.answer}}" });
+      chatSocket.sendMessage({ command: 'show_correct_answer', questionID: questionID, answer: "{{ genericquestion.answer }}" });
     }
 
 </script>

@@ -188,8 +188,6 @@ def player_game(request):
             messages.add_message(request, messages.ERROR, "This game has ended.")
             request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
-        if(game.currentQuestion):
-            answer = game.currentQuestion.get_detail().get_user_response(user, game)
     except Game.DoesNotExist:
         messages.add_message(request, messages.ERROR, "Game doesn't exist.")
         return HttpResponseRedirect(reverse('index'))
@@ -197,7 +195,4 @@ def player_game(request):
         messages.add_message(request, messages.ERROR, "User doesn't exist.")
         return HttpResponseRedirect(reverse('index'))
 
-    context = {
-        'answer': answer
-    }
-    return render(request, 'game.html', context=context);
+    return render(request, 'game.html');
