@@ -89,7 +89,7 @@ class ImageQuestion(QuestionDetail):
     image_url = models.URLField(max_length=1000)
 
 class MultipleChoiceQuestion(QuestionDetail):
-    pass
+    image_url = models.URLField(max_length=1000, null=True, blank=True)
 
 class MultipleChoiceOption(models.Model):
     question = models.ForeignKey('MultipleChoiceQuestion', related_name='options', on_delete=models.CASCADE, null=False)

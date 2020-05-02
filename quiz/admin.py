@@ -74,7 +74,8 @@ class RoundAdmin(admin.ModelAdmin):
 class RoundInline(admin.TabularInline):
     model = Round
     readonly_fields = ["get_edit_link"]
-
+    min_num = 1
+    
     def get_edit_link(self, obj=None):
         if obj.pk:  # if object has already been saved and has a primary key, show link to it
             url = reverse('admin:%s_%s_change' % (obj._meta.app_label, obj._meta.model_name), args=[str(obj.pk)])
