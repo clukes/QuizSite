@@ -66,6 +66,22 @@ def index(request):
                 request.session['username'] = None
             request.session['currentGameCode'] = None
             return HttpResponseRedirect(reverse('index'))
+    else:
+        try:
+            userID = request.session.get('userID')
+            user = User.objects.get(id=userID)
+            gameID = request.session.get['currentGameCode']
+            game = Game.objects.get(id=gameID)
+            if(not game.active):
+                messages.add_message(request, messages.ERROR, "This game has ended.")
+        except User.DoesNotExist:
+            messages.add_message(request, messages.ERROR, "User not in database.")
+            request.session['userID'] = None
+            request.session['username'] = None
+            request.session['currentGameCode'] = None
+        except Game.DoesNotExist:
+            messages.add_message(request, messages.ERROR, "No game with that code.")
+            request.session['currentGameCode'] = None
 
     username_form = UsernameForm()
     join_room_form = JoinRoomForm()
