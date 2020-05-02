@@ -71,7 +71,7 @@ def index(request):
             userID = request.session.get('userID')
             if userID:
                 user = User.objects.get(id=userID)
-            gameID = request.session.get['currentGameCode']
+            gameID = request.session.get('currentGameCode')
             if gameID:
                 game = Game.objects.get(id=gameID)
                 if(not game.active):
