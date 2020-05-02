@@ -3,12 +3,14 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from quiz.models import GenericQuestion, User, Game, GenericResponse, TextResponse, User, Quiz, Round
+from quiz.forms import MultipleChoiceForm
 from django.template import defaultfilters
 from django.db import close_old_connections
 from urllib.parse import parse_qs
 from channels.auth import login, logout, get_user
 from channels.auth import AuthMiddlewareStack
 from django.contrib.auth.models import AnonymousUser
+from django.core import serializers
 
 class QueryAuthMiddleware:
     """
@@ -85,7 +87,7 @@ class GameConsumer(WebsocketConsumer):
             'command': 'quizEnd',
             'quizTitle': quiz.title,
             'quizNumber': quiz.number,
-            'scoresHTML': self.scores_to_html(scores)
+            'scoresDict': self.scores_to_dict(scores)
         }
         self.send_message(message)
 
@@ -100,6 +102,12 @@ class GameConsumer(WebsocketConsumer):
             'roundNumber': round.number,
             'roundDesc': round.description,
             'roundImg': round.background_image_url
+        }
+        self.send_message(message)
+
+    def get_round_transition(self, data):
+        message = {
+            'command': 'roundTransition'
         }
         self.send_message(message)
 
@@ -127,6 +135,7 @@ class GameConsumer(WebsocketConsumer):
         'qs': get_quiz_start,
         'qe': get_quiz_end,
         'rs': get_round_start,
+        'rt': get_round_transition,
         're': get_round_end,
         'qa': get_question_answering,
         'qm': get_question_marking,
@@ -137,11 +146,12 @@ class GameConsumer(WebsocketConsumer):
         game = data['game']
         question = game.currentQuestion
         answer = question.get_user_response(user, game).get_response()
+
         content = {
             'command': 'question',
             'question': self.question_to_json(question),
             'marking': marking,
-            'answer': answer
+            'answer': answer,
         }
         self.send_message(content)
 
@@ -294,7 +304,7 @@ class GameConsumer(WebsocketConsumer):
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.type in ['t', 'i']):
+            if(question.type in ['t', 'i', 'm']):
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)
@@ -368,7 +378,7 @@ class GameConsumer(WebsocketConsumer):
                 'command': 'quizEnd',
                 'quizTitle': quiz.title,
                 'quizNumber': quiz.number,
-                'scoresHTML': self.scores_to_html(scores)
+                'scoresDict': self.scores_to_dict(scores)
             }
         except (Quiz.DoesNotExist, Game.DoesNotExist) as e:
             message = {}
@@ -391,6 +401,21 @@ class GameConsumer(WebsocketConsumer):
                 'roundNumber': round.number,
                 'roundDesc': round.description,
                 'roundImg': round.background_image_url
+            }
+        except (Round.DoesNotExist, Game.DoesNotExist) as e:
+            message = {}
+        self.send_message_to_group(message)
+
+
+    def show_round_transition(self, data):
+        try:
+            gameID = data['gameID']
+            game = Game.objects.get(id=gameID)
+            game.currentScreen = 'rt'
+            game.save()
+
+            message = {
+                'command': 'roundTransition',
             }
         except (Round.DoesNotExist, Game.DoesNotExist) as e:
             message = {}
@@ -427,15 +452,20 @@ class GameConsumer(WebsocketConsumer):
         if(question is None):
             return None
         image = None
+        multiple_choice_form = None
         if question.type == 'i':
             image = question.detail.image_url
+        elif question.type == 'm':
+            multiple_choice_form = MultipleChoiceForm(instance = question.detail).as_p()
         return {
             'id': question.id,
             'number': question.number,
             'question': question.question,
             'type': question.type,
-            'image': image
+            'image': image,
+            'multiple_choice_form': multiple_choice_form
         }
+
     def construct_correct_icon(points):
         return '<i class="fas fa-check-circle"></i>'
 
@@ -444,19 +474,35 @@ class GameConsumer(WebsocketConsumer):
 
     def construct_partial_icon(points):
         numerator, denominator = points.as_integer_ratio()
-        return f"""<span class="fa-layers fa-fw">
-        <i class="fas fa-circle" style="color:darkorange"></i>
-         <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 left-3.25 up-1.5" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
-        ">{numerator}</span>
-        <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 left-0.25" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
-        ">/</span>
-        <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 up-1.5 right-0.1" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
-        ">/</span>
-            <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 down-1.5 left-0.6" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
-        ">/</span>
-        <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7.75 right-3 down-1.75" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
-        ">{denominator}</span>
-         </span>"""
+        if points == 1:
+            return construct_correct_icon(points)
+        elif points > 1:
+            if(denominator == 1):
+                return f"""<span class="fa-layers fa-fw">
+                <i class="fas fa-circle" style="color:limegreen"></i>
+                 <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-5 up-0.25" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+                ">+{numerator}</span>
+                 </span>"""
+            else:
+                return f"""<span class="fa-layers fa-fw">
+                <i class="fas fa-circle" style="color:limegreen"></i>
+                <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-8 left-5" style="font-weight:700;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+                ">+</span>
+                 <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-9 left-0.5 up-2.75" style="font-weight:700;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+                ">{numerator}</span>
+                <i class="fa-layers fa-fw fas fa-slash" data-fa-transform="shrink-10 rotate-80 up-0.5 right-1.75" style="font-weight:700;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;"></i>
+                <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-9 right-4 down-1.75" style="font-weight:700;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+                ">{denominator}</span>
+                 </span>"""
+        else:
+            return f"""<span class="fa-layers fa-fw">
+            <i class="fas fa-circle" style="color:darkorange"></i>
+             <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7 left-3.25 up-1.5" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+            ">{numerator}</span>
+            <i class="fa-layers fa-fw fas fa-slash" data-fa-transform="shrink-9 rotate-80" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;"></i>
+            <span class="fa-layers-text fa-inverse" data-fa-transform="shrink-7.75 right-3 down-1.75" style="font-weight:800;color:#2B3E50;font-family:Arial Rounded MT Bold, Arial;  font-weight: bold;
+            ">{denominator}</span>
+             </span>"""
 
 
     MARKING_ICONS = {
@@ -470,9 +516,12 @@ class GameConsumer(WebsocketConsumer):
         answer = response.get_response()
         marking = self.MARKING_ICONS[response.marking](response.points)
         points = defaultfilters.floatformat(response.points, "-2")
+        bonus=""
+        if(response.points > 1):
+            bonus="<span style='color:lawngreen'> Bonus!</span>"
         html = (f"<span id='answers-{username}'>"
                 f"<strong>{username}</strong> - {answer} "
-                f"{marking} ({points} points) <br></span>")
+                f"{marking} ({points} points){bonus} <br></span>")
         return html
 
     def answers_to_html(self, answers):
@@ -482,7 +531,7 @@ class GameConsumer(WebsocketConsumer):
     def score_to_html(self, ranking, userScore):
         username = userScore.user.username
         points = defaultfilters.floatformat(userScore.score, "-2")
-        html = (f"<span id='scores-{username}'>"
+        html = (f"<span class='score' id='scores-{username}'>"
                 f"<strong>{ranking}. {username}</strong> - {points} points"
                 f"<br></span>")
         return html
@@ -491,6 +540,12 @@ class GameConsumer(WebsocketConsumer):
         scoresDict = {rank+1: key for rank, key in enumerate(scores)}
         html = ''.join(self.score_to_html(k, v) for k, v in scoresDict.items())
         return html
+
+    def scores_to_dict(self, scores):
+        scoresDict = [{'username':userScore.user.username,
+                        'score': defaultfilters.floatformat(userScore.score, "-2"),
+                        } for userScore in scores]
+        return scoresDict
 
 
     commands = {
@@ -506,6 +561,7 @@ class GameConsumer(WebsocketConsumer):
             'show_quiz_start': show_quiz_start,
             'show_quiz_end': show_quiz_end,
             'show_round_start': show_round_start,
+            'show_round_transition': show_round_transition,
             'show_round_end': show_round_end
         }
 

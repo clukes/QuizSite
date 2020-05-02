@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 
 # Register your models here.
-from .models import GenericResponse, TextResponse, GenericQuestion, TextQuestion, ImageQuestion, Round, User, Game, UserScore, Quiz
+from .models import GenericResponse, TextResponse, GenericQuestion, TextQuestion, ImageQuestion, MultipleChoiceQuestion, MultipleChoiceOption, Round, User, Game, UserScore, Quiz
 
 admin.site.register(GenericQuestion)
 admin.site.register(GenericResponse)
@@ -33,6 +33,17 @@ class ImageQuestionAdmin(admin.ModelAdmin):
         GenericQuestionInline,
     ]
 
+class MultipleChoiceOptionInline(admin.TabularInline):
+    model = MultipleChoiceOption
+    min_num = 2
+    extra = 1
+
+@admin.register(MultipleChoiceQuestion)
+class MultipleChoiceQuestionAdmin(admin.ModelAdmin):
+    inlines = [
+        GenericQuestionInline,
+        MultipleChoiceOptionInline,
+    ]
 
 @admin.register(TextResponse)
 class TextResponseAdmin(admin.ModelAdmin):

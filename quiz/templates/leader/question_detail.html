@@ -8,7 +8,15 @@
     <p><img src="{{genericquestion.detail.image_url}}" alt="Question Image" style="width:75%;"></p>
     {% endif %}
     <p><strong>{{genericquestion.question}}</strong></p>
-
+    {% if genericquestion.detail.options %}
+    <strong>Options:</strong><br>
+      <ul style="list-style-type:none; padding-left:0; margin-top:5px">
+      {% for option in genericquestion.detail.options.all %}
+        <li>{{option}}</li>
+      {% endfor %}
+      </ul>
+    <br>
+    {% endif %}
     <p>Correct answer: {{genericquestion.answer}}<br>
     <input id="show-correct" type="button" class="btn btn-success" onclick="showCorrectAnswer(event)" value="Show Correct Answer">
     </p>

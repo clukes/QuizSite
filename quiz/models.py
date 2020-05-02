@@ -3,6 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from decimal import Decimal
 from django.template import defaultfilters
+from django.core import serializers
 
 QUESTION_TYPES = (
     ('t', 'Text'),
@@ -86,6 +87,17 @@ class TextQuestion(QuestionDetail):
 
 class ImageQuestion(QuestionDetail):
     image_url = models.URLField(max_length=300)
+
+class MultipleChoiceQuestion(QuestionDetail):
+    pass
+
+class MultipleChoiceOption(models.Model):
+    question = models.ForeignKey('MultipleChoiceQuestion', related_name='options', on_delete=models.CASCADE, null=False)
+    option = models.CharField(max_length=300)
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.option
 
 class GenericResponse(models.Model):
     """Model representing a generic response."""
@@ -232,6 +244,9 @@ class User(models.Model):
         self.connected = False
         self.save()
 
+    def natural_key(self):
+        return (self.id, self.username)
+
 class UserScore(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE, null=False)
     game = models.ForeignKey('Game', on_delete=models.CASCADE, null=False)
@@ -243,7 +258,6 @@ class UserScore(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         return f'{self.user}: {self.score}'
-
 
 class Game(models.Model):
     """Model representing a game"""

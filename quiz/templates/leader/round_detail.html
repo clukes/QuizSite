@@ -3,6 +3,7 @@
 {% block content %}
   <h1>Round {{ round.number }} - {{ round.title }}</h1>
   <input id="show-round-start" type="button" class="btn btn-success" onclick="showRoundStart(event)" value="Show Round Start Screen"> &emsp;
+  <input id="show-round-transition" type="button" class="btn btn-success" onclick="showRoundTransition(event)" value="Show Round Transition Screen"> &emsp;
   <input id="show-round-end" type="button" class="btn btn-success" onclick="showRoundEnd(event)" value="Show Round End Screen"> &emsp;
   <div style="margin-left:20px;margin-top:20px">
     <h4>Questions</h4>
@@ -61,6 +62,10 @@
 
       function showRoundStart(event) {
         chatSocket.sendMessage({ command: 'show_round_start', roundID: roundID, gameID: roomCode });
+      };
+
+      function showRoundTransition(event) {
+        chatSocket.sendMessage({ command: 'show_round_transition', gameID: roomCode });
       };
 
       function showRoundEnd(event) {

@@ -19,7 +19,7 @@
 {% if request.session.currentGameCode is None %}
 No current game
 {% else %}
-<div id="current-screen">
+<div id="current-screen" style="height:100%;">
   <h1> Game Loading</h1>
   <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
 </div>
@@ -44,6 +44,7 @@ No current game
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
       var onRoundStart = false;
+      var currentQuestionType = "";
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
@@ -100,10 +101,21 @@ No current game
         if(data.marking === false) {
           form.style.display = "block";
           answers.style.display = "none";
-          document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
-          document.getElementById("set-answer").onclick = handleForm;
           document.getElementById("current-answer").innerHTML = data.answer;
-          document.getElementById('id_response').value = "";
+          if(question.type == 'm') {
+            document.getElementById('options').innerHTML = question.multiple_choice_form;
+            document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMultipleChoiceForm(event);})
+            document.getElementById("set-answer").onclick = handleMultipleChoiceForm;
+            var selectedID = $("label:contains('\n " + data.answer + "')").attr('for');
+            if(selectedID) {
+              $('#'+selectedID).prop('checked',true);
+            }
+          }
+          else {
+            document.getElementById('id_response').value = "";
+            document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
+            document.getElementById("set-answer").onclick = handleForm;
+          }
           if(data.answer) {
             document.getElementById("current-answer-display").style.display="block";
           }
@@ -141,7 +153,8 @@ No current game
             $("#current-screen").load("{% static 'quiz/quizEnd.html' %}", function() {
               document.getElementById('quizTitle').innerHTML = data.quizTitle;
               document.getElementById('quizNumber').innerHTML = data.quizNumber;
-              document.getElementById('scores-display').innerHTML = data.scoresHTML;
+              displayScores(data.scoresDict);
+              quizResultsAnimation(data);
             });
           }
         }
@@ -163,25 +176,37 @@ No current game
             });
           }
         }
+        else if(command === 'roundTransition') {
+          $("#current-screen").load("{% static 'quiz/roundTransition.html' %}");
+        }
         else if(command === 'roundEnd') {
           if(data.roundTitle) {
             $("#current-screen").load("{% static 'quiz/roundEnd.html' %}", function() {
               document.getElementById('roundTitle').innerHTML = data.roundTitle;
               document.getElementById('roundNumber').innerHTML = data.roundNumber;
               document.getElementById('scores-display').innerHTML = data.scoresHTML;
+              roundResultsAnimation();
             });
           }
         }
         else if (command === 'question') {
           question = data.question
           if(question.id) {
-            if(document.getElementById('question-id')) {
+            if(document.getElementById('question-id') && question.type == currentQuestionType) {
               loadQuestion(data);
             }
             else {
-              $("#current-screen").load("{% static 'quiz/showQuestion.html' %}", function() {
-                loadQuestion(data);
-              });
+              if(question.type == 'm') {
+                $("#current-screen").load("{% static 'quiz/showMultipleChoiceQuestion.html' %}", function() {
+                  loadQuestion(data);
+                });
+              }
+              else {
+                $("#current-screen").load("{% static 'quiz/showQuestion.html' %}", function() {
+                  loadQuestion(data);
+                });
+              }
+              currentQuestionType = question.type;
             }
           }
         }
@@ -226,7 +251,7 @@ No current game
         }
         else if (command === 'playerConnect') {
           if(data.username !== username) {
-            document.getElementById("player-list").innerHTML += "<span id='plist-" + data.username + "'>" + data.username + "</span><br>";
+            document.getElementById("player-list").innerHTML += "<p id='plist-" + data.username + "'>" + data.username + "</p>";
           }
         }
         else if (command === 'playerDisconnect') {
@@ -237,7 +262,14 @@ No current game
 
       function handleForm(event) {
         answer = document.getElementById('id_response').value;
-        questionID = document.getElementById('question-id').value
+        questionID = document.getElementById('question-id').value;
+        chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
+      };
+
+      function handleMultipleChoiceForm(event) {
+        answer = $("input[name=response]:checked").parent().text().trimLeft();
+        console.log(answer);
+        questionID = document.getElementById('question-id').value;
         chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
       };
 
@@ -250,7 +282,82 @@ No current game
               }
           };
           tick();
+      };
+
+      function roundResultsAnimation() {
+        gsap.from(".score", {duration: 3, x: 300, opacity: 0, scale: 1, delay: 0.5,
+          ease: "elastic",
+          stagger: -1,
+        });
+      };
+
+      function quizResultsAnimation() {
+        var tl = gsap.timeline({onComplete: quizSwitchPodium});
+        tl.from(".score", {duration: 3, x: 300, opacity: 0, scale: 1, delay: 0.5,
+          ease: "elastic",
+          stagger: -1,
+        });
       }
+
+      function quizSwitchPodium() {
+        $('#carousel').on('slide.bs.carousel', function (event) {
+          quizPodiumAnimation();
+          $('#carousel').unbind('slide.bs.carousel');
+        });
+        $('#carousel').carousel(1);
+      }
+
+      function quizPodiumAnimation() {
+        var tl = gsap.timeline({onComplete: endQuizAnimation});
+        var delay = 1; //Ensures first thing shown has delay of 1, second has delay of 0.5.
+        if(document.querySelector('#place-2 .podiumScore')) {
+          tl.from("#place-2 .podiumScore", {duration: 3, x: 300, opacity: 0, scale: 1, delay: 1,
+            ease: "elastic",
+          });
+          delay=0.5;
+        }
+        if(document.querySelector('#place-1 .podiumScore')) {
+          tl.from("#place-1 .podiumScore", {duration: 3, x: 300, opacity: 0, scale: 1, delay: delay,
+            ease: "elastic",
+          });
+          delay=0;
+        }
+        if(document.querySelector('#place-0 .podiumScore')) {
+          tl.from("#place-0 .podiumScore", {duration: 3, x: 300, opacity: 0, scale: 1, delay: delay,
+            ease: "elastic",
+          });
+        }
+      }
+
+      function endQuizAnimation() {
+        document.getElementById("carousel-left").style.display="flex";
+        document.getElementById("carousel-right").style.display="flex";
+      }
+
+      function scoreToString(rank, score) {
+        str = "";
+        if(rank < 3) {
+          str = "<span class='podiumScore'>" + score.username + "<br>" + score.score + " points</span>";
+        }
+        else {
+          rank++;
+          str = "<div class='score'><b>" + rank + "</b><br>" + score.username + "<br>" + score.score + " points</div>";
+        }
+        return str;
+      };
+
+      function displayScores(scores) {
+        console.log(scores);
+        for(var i = 0; i < 3 && i < scores.length; i++) {
+          document.getElementById('place-'+i).innerHTML = scoreToString(i, scores[i]);
+        }
+        table = document.getElementById('scores-display');
+        for(var i = 3; i < scores.length; i++) {
+            var row = table.insertRow(-1);
+            var cell = row.insertCell(-1);
+            cell.innerHTML = scoreToString(i, scores[i]);
+        }
+      };
 });
 
 </script>

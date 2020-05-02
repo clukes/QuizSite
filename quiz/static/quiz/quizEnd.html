@@ -1,9 +1,100 @@
-<div class="card bg-primary w-100 m-0">
-  <h2 class="card-header">End of Quiz <span id="quizNumber"></span> - <span id="quizTitle"></span></h2>
-  <div class="card-body" id="scores">
-    <h3>Final Results</h3>
-    <div style="margin-top:10px" id="scores-display">
+<style>
+  #podium0, #podium1, #podium2 {
+    width: 100%;
+    background: gray;
+  }
+  #podium0 { /* gold */
+    height: 250px;
+    margin: 0 auto;
+  }
+  #podium1 { /* silver */
+    height: 200px;
+    margin-right: 0;
+    margin-left: auto;
+  }
+  #podium2 { /* bronze */
+    height: 150px;
+    margin-right: auto;
+    margin-left: 0;
+  }
 
+  #podium-row td {
+    height: 300px;
+    vertical-align: bottom;
+    padding: 5px;
+    text-align: center;
+    word-wrap: break-word;
+  }
+
+  #scores-display td {
+    word-wrap: break-word;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    text-align: center;
+  }
+
+  .score {
+    background:#B0C4DE;
+    color:#2F4F4F;
+  }
+
+  #content {
+    margin:0 !important;
+  }
+
+  .carousel-item{
+    width:100% !important;
+    min-height:100% !important;
+    max-height:100% !important;
+  }
+  .carousel-item.active,
+  .carousel-item-next,
+  .carousel-item-prev {
+    display: flex;
+  }
+
+  .carousel-inner table {
+    margin: auto;
+  }
+
+</style>
+<div class="h-100 d-flex flex-column" style="margin-top:15px;">
+  <div class="flex-column justify-content-center">
+    <h2>End of Quiz <span id="quizNumber"></span> - <span id="quizTitle"></span></h2>
+    <h3>Final Results</h3>
+  </div>
+  <div class="flex-column justify-content-center flex-grow-1 overflow-auto">
+    <div id="carousel" class="carousel slide h-100" data-interval="false">
+        <div class="carousel-inner h-100">
+          <div class="carousel-item active " style="width:100%;">
+            <table id="scores-display">
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+          <div class="carousel-item" style="width:100%;">
+            <table id="podium-display" class="text-left" style="table-layout: fixed; width:100%;">
+              <tbody style="vertical-align:top;">
+                <tr id="podium-row" class="justify-content-center">
+                  <td></td>
+                  <td><span id="place-1"></span><div id="podium1"><i class="fas fa-medal fa-3x" style="color:#C0C0C0;"></i></div></td>
+                  <td><span id="place-0"></span><div id="podium0"><i class="fas fa-medal fa-3x" style="color:gold;"></i></div></td>
+                  <td><span id="place-2"></span><div id="podium2"><i class="fas fa-medal fa-3x" style="color:#CD9932;"></i></div></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <a id="carousel-left" class="carousel-control-prev my-auto" href="#carousel" role="button" data-slide="prev" style="display:none;">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+      </a>
+      <a id="carousel-right" class="carousel-control-next my-auto" href="#carousel" role="button" data-slide="next" style="display:none;">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+      </a>
     </div>
   </div>
-</div>
+  </div>

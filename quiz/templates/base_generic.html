@@ -15,7 +15,7 @@
 <body>
   <div class="container-fluid h-100">
     <div id="page-row" class="row h-100">
-      <div class="col-2">
+      <div class="col-sm-2">
       {% block sidebar %}
       <ul class="nav nav-pills">
         <li class="nav-item">
@@ -24,7 +24,7 @@
       </ul>
      {% endblock %}
       </div>
-      <div class="col-8 text-center my-auto">
+      <div id="content" class="col-sm-8 text-center my-auto">
         {% block content %}{% endblock %}
         {% if messages %}
         <ul class="messages">
@@ -40,7 +40,8 @@
         {% endif %}
       </div>
       {% block playerDisplay %}
-      <div class="col-sm-2 p-1" >
+      <p class="d-block d-sm-none">&nbsp<br></p>
+      <div class="col-sm-2 p-sm-1" >
         <div class="card bg-default w-100 m-0">
           <h6 class="card-header">
             <strong>Room Code: {% block roomCode %}{% endblock %}</strong>
@@ -61,6 +62,7 @@
 <script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"></script>
 {% block scripts %}
 {% endblock %}
 </body>

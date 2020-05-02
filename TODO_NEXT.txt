@@ -1,26 +1,24 @@
-- LEFTOFF:
-- TODO:
-
-- PUT QUIZ SITE V2.0 WHEN PLAY NEXT TIME
+- LEFTOFF: Done Quiz End screen animation.
+- TODO: Upload to heroku.
 
 ROUND PRIORITY LIST:
-- Multiple Choice.
 - Video/Audio.
 
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
 NON URGENT ISSUES:
-- When leaving and rejoining, adds weird spacing.
-- Current answer shows when switching to another question.
-- Red outline on textbox on firefox.
-- On mobile, make sure player list isn't making question space smaller. Put space between bottom and player list and mobile.
+- When leaving and rejoining, adds weird spacing. / (Should be fixed.)
+- Red outline on textbox on firefox. /
+- Put space between bottom and player list and mobile. /
+- Fraction is not aligned when zoomed in. Change the slash into one big slash. /
+- On mobile, make sure player list isn't making question space smaller.
 - On mobile, quiz end screen hits top of screen and looks weird.
-- Fraction is not aligned when zoomed in. Change the slash into one big slash.
 - Question too close to home button on mobile.
+- Current answer shows when switching to another question.
 
 
-- On Round End/Quiz End screens, display scores of users one by one.
+- On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 
 - On player list, show who's answered. Have a counter, 3/6 peoples answered.
 
@@ -44,8 +42,6 @@ NON URGENT ISSUES:
 
 - Do something about coming back and reusing username.
 
-- Have bonus points.
-
 - Maybe overlay text on image on round start screen.
 
 - Add background image for rounds.
@@ -56,6 +52,11 @@ NON URGENT ISSUES:
 
 - If leader has no username, redirect to username screen
 
+- Multiple choice maybe have leader show the options.
+
 - When player on game page, check that they are actually in that game.
 
 - Add change username button
+
+- Have a website logo/image, put in the tab bar.
+- Make animated logo, maybe use svgator.
