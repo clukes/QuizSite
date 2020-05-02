@@ -86,7 +86,7 @@ class TextQuestion(QuestionDetail):
     pass
 
 class ImageQuestion(QuestionDetail):
-    image_url = models.URLField(max_length=300)
+    image_url = models.URLField(max_length=1000)
 
 class MultipleChoiceQuestion(QuestionDetail):
     pass
