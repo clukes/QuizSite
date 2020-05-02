@@ -91,7 +91,7 @@ No current game
         document.getElementById('question-id').value = question.id;
         document.getElementById('questionNumber').innerHTML = "Question " + question.number;
         document.getElementById('question').innerHTML = question.question;
-        if(question.type == 'i') {
+        if(question.image) {
           document.getElementById('image').style.display="block";
           document.getElementById('questionImg').src = question.image;
         }

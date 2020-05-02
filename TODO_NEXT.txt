@@ -16,6 +16,7 @@ NON URGENT ISSUES:
 - On mobile, quiz end screen hits top of screen and looks weird.
 - Question too close to home button on mobile.
 - Current answer shows when switching to another question.
+- On game starting screen it shows game loading before the screen
 
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.

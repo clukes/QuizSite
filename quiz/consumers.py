@@ -457,6 +457,7 @@ class GameConsumer(WebsocketConsumer):
             image = question.detail.image_url
         elif question.type == 'm':
             multiple_choice_form = MultipleChoiceForm(instance = question.detail).as_p()
+            image = question.detail.image_url
         return {
             'id': question.id,
             'number': question.number,

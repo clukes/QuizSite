@@ -34,7 +34,7 @@ class ImageQuestionAdmin(admin.ModelAdmin):
 class MultipleChoiceOptionInline(admin.TabularInline):
     model = MultipleChoiceOption
     min_num = 2
-    extra = 1
+    extra = 2
 
 @admin.register(MultipleChoiceQuestion)
 class MultipleChoiceQuestionAdmin(admin.ModelAdmin):
@@ -74,8 +74,8 @@ class RoundAdmin(admin.ModelAdmin):
 class RoundInline(admin.TabularInline):
     model = Round
     readonly_fields = ["get_edit_link"]
-    min_num = 1
-    
+    extra = 3
+
     def get_edit_link(self, obj=None):
         if obj.pk:  # if object has already been saved and has a primary key, show link to it
             url = reverse('admin:%s_%s_change' % (obj._meta.app_label, obj._meta.model_name), args=[str(obj.pk)])
