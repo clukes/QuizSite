@@ -7,7 +7,12 @@ ROUND PRIORITY LIST:
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
+URGENT ISSUES:
+- Fix image url textbox on image multiple choice question
+
 NON URGENT ISSUES:
+- Quiz End need more of a border on the results.
+- Fireworks gif background on quiz end.
 - When leaving and rejoining, adds weird spacing. / (Should be fixed.)
 - Red outline on textbox on firefox. /
 - Put space between bottom and player list and mobile. /
@@ -17,7 +22,7 @@ NON URGENT ISSUES:
 - Question too close to home button on mobile.
 - Current answer shows when switching to another question.
 - On game starting screen it shows game loading before the screen
-
+- Change colour of bonus, it clashes with indicating who you are.
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 

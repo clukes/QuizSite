@@ -18,7 +18,7 @@ class MultipleChoiceForm(forms.ModelForm):
 
     class Meta:
         model = MultipleChoiceQuestion
-        exclude=[]
+        exclude=["image_url"]
 
     def __init__(self, instance, *args, **kwargs):
         super(MultipleChoiceForm, self).__init__(*args, **kwargs)
