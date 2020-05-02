@@ -69,11 +69,13 @@ def index(request):
     else:
         try:
             userID = request.session.get('userID')
-            user = User.objects.get(id=userID)
+            if userID:
+                user = User.objects.get(id=userID)
             gameID = request.session.get['currentGameCode']
-            game = Game.objects.get(id=gameID)
-            if(not game.active):
-                messages.add_message(request, messages.ERROR, "This game has ended.")
+            if gameID:
+                game = Game.objects.get(id=gameID)
+                if(not game.active):
+                    messages.add_message(request, messages.ERROR, "This game has ended.")
         except User.DoesNotExist:
             messages.add_message(request, messages.ERROR, "User not in database.")
             request.session['userID'] = None

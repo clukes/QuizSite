@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 
 # Register your models here.
 from .models import GenericResponse, TextResponse, GenericQuestion, TextQuestion, ImageQuestion, MultipleChoiceQuestion, MultipleChoiceOption, Round, User, Game, UserScore, Quiz
@@ -9,11 +12,6 @@ admin.site.register(GenericResponse)
 admin.site.register(User)
 admin.site.register(UserScore)
 admin.site.register(Game)
-admin.site.register(Quiz)
-
-@admin.register(Round)
-class RoundAdmin(admin.ModelAdmin):
-    list_display = ('quiz', 'number', 'title')
 
 class GenericQuestionInline(GenericTabularInline):
     model = GenericQuestion
@@ -48,3 +46,48 @@ class MultipleChoiceQuestionAdmin(admin.ModelAdmin):
 @admin.register(TextResponse)
 class TextResponseAdmin(admin.ModelAdmin):
     list_display = ('id', 'response')
+
+
+class GenericQuestionRoundInline(admin.TabularInline):
+    model = GenericQuestion
+    readonly_fields = ["get_edit_link", "content_type", "object_id"]
+
+    def get_edit_link(self, obj=None):
+        obj = obj.detail
+        if obj.pk:  # if object has already been saved and has a primary key, show link to it
+            url = reverse('admin:%s_%s_change' % (obj._meta.app_label, obj._meta.model_name), args=[str(obj.pk)])
+            return mark_safe("""<a href="{url}">{text}</a>""".format(
+                url=url,
+                text=_("Edit this %s separately") % obj._meta.verbose_name,
+            ))
+        return _("(save and continue editing to create a link)")
+    get_edit_link.short_description = _("Edit link")
+
+
+@admin.register(Round)
+class RoundAdmin(admin.ModelAdmin):
+    list_display = ('quiz', 'number', 'title')
+    inlines = [
+        GenericQuestionRoundInline,
+    ]
+
+class RoundInline(admin.TabularInline):
+    model = Round
+    readonly_fields = ["get_edit_link"]
+
+    def get_edit_link(self, obj=None):
+        if obj.pk:  # if object has already been saved and has a primary key, show link to it
+            url = reverse('admin:%s_%s_change' % (obj._meta.app_label, obj._meta.model_name), args=[str(obj.pk)])
+            return mark_safe("""<a href="{url}">{text}</a>""".format(
+                url=url,
+                text=_("Edit this %s separately") % obj._meta.verbose_name,
+            ))
+        return _("(save and continue editing to create a link)")
+    get_edit_link.short_description = _("Edit link")
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ('number', 'title', 'description')
+    inlines = [
+        RoundInline,
+    ]

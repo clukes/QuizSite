@@ -42,7 +42,7 @@ class GenericQuestion(models.Model):
     class Meta:
         unique_together = (('number', 'round'), ('content_type', 'object_id'))
 
-        ordering = ['number']
+        ordering = ['round', 'number']
 
     def __str__(self):
         """String for representing the Model object."""
@@ -188,7 +188,7 @@ class Round(models.Model):
     background_image_url = models.URLField(max_length=300, null=True, blank=True)
 
     class Meta:
-        ordering = ['number']
+        ordering = ['quiz__number', 'number']
 
     def __str__(self):
         """String for representing the Model object."""
