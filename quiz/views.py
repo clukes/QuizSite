@@ -76,6 +76,7 @@ def index(request):
                 game = Game.objects.get(id=gameID)
                 if(not game.active):
                     messages.add_message(request, messages.ERROR, "This game has ended.")
+                    request.session['currentGameCode'] = None
         except User.DoesNotExist:
             messages.add_message(request, messages.ERROR, "User not in database.")
             request.session['userID'] = None
