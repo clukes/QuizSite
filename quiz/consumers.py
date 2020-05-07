@@ -304,7 +304,7 @@ class GameConsumer(WebsocketConsumer):
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.type in ['t', 'i', 'm']):
+            if(question.type in ['t', 'i', 'v']):
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)
@@ -453,17 +453,14 @@ class GameConsumer(WebsocketConsumer):
             return None
         image = None
         multiple_choice_form = None
-        if question.type == 'i':
-            image = question.detail.image_url
-        elif question.type == 'm':
+        if question.multiple_choice is True:
             multiple_choice_form = MultipleChoiceForm(instance = question.detail).as_p()
-            image = question.detail.image_url
         return {
             'id': question.id,
             'number': question.number,
             'question': question.question,
             'type': question.type,
-            'image': image,
+            'media_url': question.media_url,
             'multiple_choice_form': multiple_choice_form
         }
 

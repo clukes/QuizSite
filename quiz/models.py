@@ -8,7 +8,7 @@ from django.core import serializers
 QUESTION_TYPES = (
     ('t', 'Text'),
     ('i', 'Image'),
-    ('m', 'Multiple Choice'),
+    ('v', 'Video'),
 )
 
 RESPONSE_TYPES = (
@@ -21,12 +21,14 @@ class GenericQuestion(models.Model):
     round = models.ForeignKey('Round', on_delete=models.SET_NULL, null=True)
     question = models.CharField(max_length=500)
     answer = models.CharField(max_length=500)
+    media_url = models.URLField(max_length=1000, null=True, blank=True)
 
     type = models.CharField(
         max_length=1,
         choices=QUESTION_TYPES,
         default='t',
     )
+    multiple_choice = models.BooleanField(default=False)
 
     object_id = models.IntegerField(null=True, blank=True)
     content_type = models.ForeignKey(
@@ -85,11 +87,8 @@ class QuestionDetail(models.Model):
 class TextQuestion(QuestionDetail):
     pass
 
-class ImageQuestion(QuestionDetail):
-    image_url = models.URLField(max_length=1000)
-
 class MultipleChoiceQuestion(QuestionDetail):
-    image_url = models.URLField(max_length=1000, null=True, blank=True)
+    pass
 
 class MultipleChoiceOption(models.Model):
     question = models.ForeignKey('MultipleChoiceQuestion', related_name='options', on_delete=models.CASCADE, null=False)

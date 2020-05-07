@@ -2,16 +2,18 @@
 - TODO: Upload to heroku.
 
 ROUND PRIORITY LIST:
-- Video/Audio.
+- Audio
 
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
 URGENT ISSUES:
 - Fix image url textbox on image multiple choice question
+- If put 1 in partial it throws an error
 
 NON URGENT ISSUES:
-- Quiz End need more of a border on the results.
+- Quiz End need more of a border on the results. /
+- Quiz End is a bit fast on the runners up screen.
 - Fireworks gif background on quiz end.
 - When leaving and rejoining, adds weird spacing. / (Should be fixed.)
 - Red outline on textbox on firefox. /

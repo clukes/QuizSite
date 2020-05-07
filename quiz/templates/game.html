@@ -44,7 +44,7 @@ No current game
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
       var onRoundStart = false;
-      var currentQuestionType = "";
+      var currentQuestionMultipleChoice = false;
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
@@ -91,9 +91,13 @@ No current game
         document.getElementById('question-id').value = question.id;
         document.getElementById('questionNumber').innerHTML = "Question " + question.number;
         document.getElementById('question').innerHTML = question.question;
-        if(question.image) {
+        if(question.type == 'i') {
           document.getElementById('image').style.display="block";
-          document.getElementById('questionImg').src = question.image;
+          document.getElementById('questionImg').src = question.media_url;
+        }
+        else if(question.type == 'v') {
+          document.getElementById('video').style.display="block";
+          document.getElementById('videoFrame').src = question.media_url;
         }
         var form = document.getElementById("form");
         var answers = document.getElementById("answers");
@@ -102,7 +106,7 @@ No current game
           form.style.display = "block";
           answers.style.display = "none";
           document.getElementById("current-answer").innerHTML = data.answer;
-          if(question.type == 'm') {
+          if(question.multiple_choice_form) {
             document.getElementById('options').innerHTML = question.multiple_choice_form;
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMultipleChoiceForm(event);})
             document.getElementById("set-answer").onclick = handleMultipleChoiceForm;
@@ -191,12 +195,13 @@ No current game
         }
         else if (command === 'question') {
           question = data.question
+          multiple_choice = !(question.multiple_choice_form == null)
           if(question.id) {
-            if(document.getElementById('question-id') && question.type == currentQuestionType) {
+            if(document.getElementById('question-id') && question.multiple_choice == currentQuestionMultipleChoice) {
               loadQuestion(data);
             }
             else {
-              if(question.type == 'm') {
+              if(multiple_choice) {
                 $("#current-screen").load("{% static 'quiz/showMultipleChoiceQuestion.html' %}", function() {
                   loadQuestion(data);
                 });
@@ -206,7 +211,7 @@ No current game
                   loadQuestion(data);
                 });
               }
-              currentQuestionType = question.type;
+              currentQuestionMultipleChoice = multiple_choice;
             }
           }
         }

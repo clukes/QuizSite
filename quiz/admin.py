@@ -1,19 +1,18 @@
 from django.contrib import admin
-from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.contenttypes.admin import GenericStackedInline
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 
 # Register your models here.
-from .models import GenericResponse, TextResponse, GenericQuestion, TextQuestion, ImageQuestion, MultipleChoiceQuestion, MultipleChoiceOption, Round, User, Game, UserScore, Quiz
+from .models import GenericResponse, TextResponse, GenericQuestion, TextQuestion, MultipleChoiceQuestion, MultipleChoiceOption, Round, User, Game, UserScore, Quiz
 
 admin.site.register(GenericQuestion)
 admin.site.register(GenericResponse)
 admin.site.register(User)
 admin.site.register(UserScore)
 admin.site.register(Game)
-
-class GenericQuestionInline(GenericTabularInline):
+class GenericQuestionInline(GenericStackedInline):
     model = GenericQuestion
     max_num = 1
     min_num = 1
@@ -21,12 +20,6 @@ class GenericQuestionInline(GenericTabularInline):
 
 @admin.register(TextQuestion)
 class TextQuestionAdmin(admin.ModelAdmin):
-    inlines = [
-        GenericQuestionInline,
-    ]
-
-@admin.register(ImageQuestion)
-class ImageQuestionAdmin(admin.ModelAdmin):
     inlines = [
         GenericQuestionInline,
     ]
