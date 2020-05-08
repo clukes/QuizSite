@@ -11,6 +11,7 @@ from channels.auth import login, logout, get_user
 from channels.auth import AuthMiddlewareStack
 from django.contrib.auth.models import AnonymousUser
 from django.core import serializers
+from django.utils import timezone
 
 class QueryAuthMiddleware:
     """
@@ -146,12 +147,16 @@ class GameConsumer(WebsocketConsumer):
         game = data['game']
         question = game.currentQuestion
         answer = question.get_user_response(user, game).get_response()
-
+        timerEnd = None
+        if not marking:
+            if game.timerEnd:
+                timerEnd = str(game.timerEnd.isoformat())
         content = {
             'command': 'question',
             'question': self.question_to_json(question),
             'marking': marking,
             'answer': answer,
+            'timerEnd': timerEnd
         }
         self.send_message(content)
 
@@ -166,11 +171,13 @@ class GameConsumer(WebsocketConsumer):
             game.currentRound = question.round
             game.currentQuestion = question
             game.currentScreen = 'qa'
+            game.timerEnd = None
             game.save()
             content = {
                 'command': 'question',
                 'question': self.question_to_json(question),
-                'marking': False
+                'marking': False,
+                'timerEnd': None
             }
         except Game.DoesNotExist:
             print("Game does not exist")
@@ -195,6 +202,7 @@ class GameConsumer(WebsocketConsumer):
             game.currentQuiz = question.round.quiz
             game.currentRound = question.round
             game.currentQuestion = question
+            game.timerEnd = None
             game.currentScreen = 'qm'
             game.save()
             content = {
@@ -270,20 +278,11 @@ class GameConsumer(WebsocketConsumer):
                 'questionID': questionID,
                 'answersHTML': self.answers_to_html(answers)
             }
+            self.send_message_to_group(content)
         except GenericQuestion.DoesNotExist:
             print("Question does not exist")
-            content = {
-                'command': 'showAllAnswers',
-                'question': {}
-            }
         except Game.DoesNotExist:
             print("Game does not exist")
-            content = {
-                'command': 'showAllAnswers',
-                'question': {}
-            }
-
-        self.send_message_to_group(content)
 
     def show_correct_answer(self, data):
         questionID = data['questionID']
@@ -294,6 +293,27 @@ class GameConsumer(WebsocketConsumer):
             'answer': answer
         }
         self.send_message_to_group(content)
+
+    def set_timer(self, data):
+        try:
+            questionID = data['questionID']
+            gameID = data['gameID']
+            timerLength = int(data['timerLength'])
+            question = GenericQuestion.objects.get(id=questionID)
+            game = Game.objects.get(id=gameID)
+            if(game.currentQuestion == question):
+                game.timerEnd = timezone.now() + timezone.timedelta(seconds=timerLength)
+                game.save()
+                content = {
+                    'command': 'timer',
+                    'questionID': questionID,
+                    'timerEnd': str(game.timerEnd.isoformat()),
+                }
+                self.send_message_to_group(content)
+        except Game.DoesNotExist:
+            print("Game does not exist")
+        except GenericQuestion.DoesNotExist:
+            print("Question does not exist")
 
     def set_text_answer(self, data):
         try:
@@ -555,6 +575,7 @@ class GameConsumer(WebsocketConsumer):
             'mark_answer': mark_answer,
             'show_all_answers': show_all_answers,
             'show_correct_answer': show_correct_answer,
+            'set_timer': set_timer,
             'get_player_list': get_player_list,
             'show_quiz_start': show_quiz_start,
             'show_quiz_end': show_quiz_end,

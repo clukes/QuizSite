@@ -20,7 +20,7 @@
 No current game
 {% else %}
 <div id="current-screen" style="height:100%;">
-  <h1> Game Loading</h1>
+  <h1>Game Loading</h1>
   <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
 </div>
 {% endif %}
@@ -40,6 +40,9 @@ No current game
 {{ request.session.currentGameCode|json_script:"room-code" }}
 {{ request.session.userID|json_script:"userID"}}
 {{ request.session.username|json_script:"username"}}
+
+{% load static %}
+<script src="{% static 'scripts/timer.js' %}"></script>
 <script>
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
@@ -48,6 +51,7 @@ No current game
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
+      var timeInterval = setInterval(function() {return false;}, 0);
 
       var protocol = '';
       if (window.location.protocol === 'https:') {
@@ -106,6 +110,9 @@ No current game
           form.style.display = "block";
           answers.style.display = "none";
           document.getElementById("current-answer").innerHTML = data.answer;
+          var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
+          console.log(timerEnd);
+          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
           if(question.multiple_choice_form) {
             document.getElementById('options').innerHTML = question.multiple_choice_form;
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMultipleChoiceForm(event);})
@@ -251,6 +258,13 @@ No current game
             document.getElementById('correct-answer').innerHTML = data.answer;
           }
         }
+        else if (command === 'timer') {
+          questionID = document.getElementById('question-id').value;
+          if(questionID == data.questionID) {
+            var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
+            timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+          }
+        }
         else if (command === 'playerList') {
           document.getElementById("player-list").innerHTML = data.playerList;
         }
@@ -364,7 +378,6 @@ No current game
         }
       };
 });
-
 </script>
 
 {% endif %}

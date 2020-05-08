@@ -27,7 +27,9 @@
 <br>
 <input id="show-question" type="button" class="btn btn-success" value="Show Question">
 <br>
+Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="width: 50px">seconds<input id="set-timer" onclick="setTimer(event)" type="button" class="btn btn-success" value="Set Timer">
 <br>
+<p id="timerCountdown" style="display:none;">Time remaining: <span class="minutes"></span>:<span class="seconds"></span></p>
 <br>
 <input id="mark-question" type="button" class="btn btn-success" value="Mark Question">
 <br>
@@ -67,6 +69,8 @@
 {% block scripts %}
 {{ request.session.currentGameCode|json_script:"currentGameCode" }}
 {{ genericquestion.id|json_script:"questionID" }}
+{% load static %}
+<script src="{% static 'scripts/timer.js' %}"></script>
 <script>
     const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
     const questionID = JSON.parse(document.getElementById('questionID').textContent);
@@ -111,16 +115,22 @@
       const data = JSON.parse(e.data);
       const command = data.command;
       if (command === 'answer') {
-        answer = data.answer;
+        var answer = data.answer;
         if(answer.username && answer.questionID == questionID) {
           document.getElementById(answer.username).innerHTML = answer.answer;
         }
       }
       else if (command === 'markedAnswer') {
-        responseID = data.responseID;
-        form = document.getElementById(responseID);
+        var responseID = data.responseID;
+        var form = document.getElementById(responseID);
         form.querySelector('span[name="marking"]').innerHTML = data.marking;
         form.querySelector('span[name="points"]').innerHTML = data.points;
+      }
+      else if (command === 'timer') {
+        if(questionID == data.questionID) {
+          var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
+          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+        }
       }
       else if (command === 'playerList') {
         document.getElementById("player-list").innerHTML = data.playerList;
@@ -147,16 +157,16 @@
     };
 
     function showAnswer(event) {
-      form = event.toElement.parentElement;
-      responseID = form.querySelector('input[name="responseID"]').value;
+      var form = event.toElement.parentElement;
+      var responseID = form.querySelector('input[name="responseID"]').value;
       chatSocket.sendMessage({ command: 'show_answer', responseID: responseID });
     };
 
     function markAnswer(event) {
-      form = event.toElement.parentElement;
-      responseID = form.querySelector('input[name="responseID"]').value;
-      points = 0;
-      error = form.querySelector('span[name="error"]').innerHTML;
+      var form = event.toElement.parentElement;
+      var responseID = form.querySelector('input[name="responseID"]').value;
+      var points = 0;
+      var error = form.querySelector('span[name="error"]').innerHTML;
       if(form.querySelector('.correct').checked) {
         marking = 'c';
         points = 1;
@@ -188,7 +198,17 @@
 
     function showCorrectAnswer(event) {
       chatSocket.sendMessage({ command: 'show_correct_answer', questionID: questionID, answer: "{{ genericquestion.answer }}" });
-    }
+    };
 
+    function setTimer(event) {
+      var timerLength = document.getElementById("timerLength").value;
+      chatSocket.sendMessage({ command: 'set_timer', questionID: questionID, gameID: roomCode, timerLength: timerLength });
+    };
+
+    var timeInterval = setInterval(function() {return false;}, 0);
+    var timerEnd = new Date(Date.parse(new Date("{{ game.timerEnd.isoformat }}")));
+    timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
 </script>
+
+
 {% endblock %}

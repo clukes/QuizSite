@@ -265,13 +265,14 @@ class Game(models.Model):
     currentQuiz = models.ForeignKey('Quiz', on_delete=models.SET_NULL, blank=True, null=True)
     currentRound = models.ForeignKey('Round', on_delete=models.SET_NULL, blank=True, null=True)
     currentQuestion = models.ForeignKey('GenericQuestion', on_delete=models.SET_NULL, blank=True, null=True)
-    # marking = models.BooleanField(default=False)
+    timerEnd = models.DateTimeField(blank=True, null=True)
 
     CURRENT_SCREEN_CHOICES = [
         ('gs', 'Game Start'),
         ('qs', 'Quiz Start'),
         ('qe', 'Quiz End'),
         ('rs', 'Round Start'),
+        ('rt', 'Round Transition'),
         ('re', 'Round End'),
         ('qa', 'Question Answering'),
         ('qm', 'Question Marking'),

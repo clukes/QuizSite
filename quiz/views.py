@@ -184,6 +184,7 @@ class GenericQuestionDetailView(generic.DetailView):
                 response = user.get_response(question)
                 answers[user.username] = response
             context['answers'] = answers
+            context['game'] = game
         except Game.DoesNotExist:
             messages.add_message(self.request, messages.ERROR, "No game running.")
         return context
