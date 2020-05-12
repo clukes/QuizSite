@@ -1,5 +1,5 @@
   function getTimeRemaining(totaltime, endtime) {
-    var t = Date.parse(endtime) - Date.parse(new Date());
+    var t = ServerDate.parse(endtime) - ServerDate.parse(new ServerDate());
     var seconds = Math.floor((t / 1000) % 60);
     var minutes = Math.floor((t / 1000 / 60) % 60);
     var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
@@ -18,7 +18,7 @@
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');
     const secondsSpan = clock.querySelector('.seconds');
-    var totaltime = Date.parse(endtime) - Date.parse(new Date());
+    var totaltime = ServerDate.parse(endtime) - ServerDate.parse(new ServerDate());
     if(isNaN(endtime) || totaltime <= 0) {
       clock.style.display="none";
       return false;
