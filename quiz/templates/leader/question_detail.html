@@ -8,6 +8,8 @@
     <p><img src="{{genericquestion.media_url}}" alt="Question Image" style="width:75%;"></p>
     {% elif genericquestion.type == 'v' %}
     <div style="width:100%;height:0px;position:relative;padding-bottom:56.250%;"><iframe src="{{genericquestion.media_url}}" frameborder="0" width="100%" height="100%" allowfullscreen style="width:100%;height:100%;position:absolute;left:0px;top:0px;overflow:hidden;"></iframe></div>
+    {% elif genericquestion.type == 'a' %}
+    <div id="audio"><iframe id="audioFrame" width="100%" height="200" src="{{genericquestion.media_url}}" frameborder="0"></iframe></div>
     {% endif %}
     <p><strong>{{genericquestion.question}}</strong></p>
     {% if genericquestion.detail.options %}

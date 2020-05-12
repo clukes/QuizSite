@@ -2,29 +2,38 @@
 - TODO: Upload to heroku.
 
 ROUND PRIORITY LIST:
-- Audio
+- Audio /
+- Progressive Scoring Round (E.g. 1 second of song, 5 seconds, 10 seconds, save at what point someone answers)
+- Outsourced Round (Use Iframe to include another website. In database for the question, store url,
+  and search string. Have submit button, when they click it it will search in the iframe for the string,
+  in order to get their answer. MIGHT NOT BE POSSIBLE, CROSS-SITE JAVASCRIPT IS NOT POSSIBLE.
+  SO CANNOT EASILY SEARCH IN IFRAME)
+- Questions all on one page, pages have connection.
 
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
+- Have edit answer button that puts current answer in text box.
+- Change username button.
+- Maybe change text box to text area. Grow with answer if possible.
+- Have hints, have possibility to send message to one player from leader screen.
+
 URGENT ISSUES:
-- Fix image url textbox on image multiple choice question
-- If put 1 in partial it throws an error
+- If put 1 in partial it throws an error /
+- WTF IS HAPPENING WITH TIMER (The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
 
 NON URGENT ISSUES:
-- Quiz End need more of a border on the results. /
+- maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
+
 - Quiz End is a bit fast on the runners up screen.
 - Fireworks gif background on quiz end.
-- When leaving and rejoining, adds weird spacing. / (Should be fixed.)
-- Red outline on textbox on firefox. /
-- Put space between bottom and player list and mobile. /
-- Fraction is not aligned when zoomed in. Change the slash into one big slash. /
 - On mobile, make sure player list isn't making question space smaller.
 - On mobile, quiz end screen hits top of screen and looks weird.
 - Question too close to home button on mobile.
 - Current answer shows when switching to another question.
 - On game starting screen it shows game loading before the screen
 - Change colour of bonus, it clashes with indicating who you are.
+
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 
@@ -60,7 +69,7 @@ NON URGENT ISSUES:
 
 - If leader has no username, redirect to username screen
 
-- Multiple choice maybe have leader show the options.
+- Multiple choice maybe have leader show the options to players.
 
 - When player on game page, check that they are actually in that game.
 

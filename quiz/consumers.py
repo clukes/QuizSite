@@ -324,7 +324,7 @@ class GameConsumer(WebsocketConsumer):
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.type in ['t', 'i', 'v']):
+            if(question.type in ['t', 'i', 'v', 'a']):
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)
@@ -484,16 +484,16 @@ class GameConsumer(WebsocketConsumer):
             'multiple_choice_form': multiple_choice_form
         }
 
-    def construct_correct_icon(points):
+    def construct_correct_icon(self, points):
         return '<i class="fas fa-check-circle"></i>'
 
-    def construct_incorrect_icon(points):
-        return'<i class="fas fa-times-circle"></i>'
+    def construct_incorrect_icon(self, points):
+        return '<i class="fas fa-times-circle"></i>'
 
-    def construct_partial_icon(points):
+    def construct_partial_icon(self, points):
         numerator, denominator = points.as_integer_ratio()
         if points == 1:
-            return construct_correct_icon(points)
+            return self.construct_correct_icon(points)
         elif points > 1:
             if(denominator == 1):
                 return f"""<span class="fa-layers fa-fw">
@@ -532,7 +532,7 @@ class GameConsumer(WebsocketConsumer):
     def answer_to_html(self, response):
         username = response.user.username
         answer = response.get_response()
-        marking = self.MARKING_ICONS[response.marking](response.points)
+        marking = self.MARKING_ICONS[response.marking](self, response.points)
         points = defaultfilters.floatformat(response.points, "-2")
         bonus=""
         if(response.points > 1):

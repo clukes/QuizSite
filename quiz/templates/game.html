@@ -103,6 +103,10 @@ No current game
           document.getElementById('video').style.display="block";
           document.getElementById('videoFrame').src = question.media_url;
         }
+        else if(question.type == 'a') {
+          document.getElementById('audio').style.display="block";
+          document.getElementById('audioFrame').src = question.media_url;
+        }
         var form = document.getElementById("form");
         var answers = document.getElementById("answers");
         document.getElementById('correct-answer-display').style.display = "none";
@@ -129,6 +133,11 @@ No current game
           }
           if(data.answer) {
             document.getElementById("current-answer-display").style.display="block";
+          }
+
+          if(question.type == 'a') {
+            var audioFrame = document.getElementById('audioFrame');
+            audioFrame.querySelector('.control .play').click();
           }
         }
         else {

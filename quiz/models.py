@@ -9,6 +9,7 @@ QUESTION_TYPES = (
     ('t', 'Text'),
     ('i', 'Image'),
     ('v', 'Video'),
+    ('a', 'Audio')
 )
 
 RESPONSE_TYPES = (
