@@ -276,7 +276,14 @@ No current game
         else if (command === 'timer') {
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
-            timeInterval = initializeClockWithData('timerCountdown', data, timeInterval);
+            var waitInterval = setInterval(function()
+            {
+              if (ServerDate.is_synchronized()) {
+                clearInterval(waitInterval);
+                timeInterval = initializeClockWithData('timerCountdown', data, timeInterval);
+                return;
+              }
+            }, 500);
           }
         }
         else if (command === 'playerList') {

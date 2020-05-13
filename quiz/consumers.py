@@ -319,6 +319,19 @@ class GameConsumer(WebsocketConsumer):
         except GenericQuestion.DoesNotExist:
             print("Question does not exist")
 
+    def get_timer(self, data):
+        try:
+            gameID = data['gameID']
+            game = Game.objects.get(id=gameID)
+            content = {
+                'command': 'timer',
+                'timerLength': (game.timerEnd - timezone.now()).total_seconds(),
+                'timerEnd': str(game.timerEnd.isoformat()),
+            }
+            self.send_message_to_group(content)
+        except Game.DoesNotExist:
+            print("Game does not exist")
+
     def set_text_answer(self, data):
         try:
             userID = data['userID']
