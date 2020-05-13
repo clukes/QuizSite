@@ -1,6 +1,4 @@
 class Timer {
-  var timeInterval;
-
   constructor() {
     this.timeInterval = setInterval(function() {return false;}, 0);
   }
