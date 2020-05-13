@@ -1,3 +1,10 @@
+class Timer() {
+  var timeInterval;
+
+  constructor() {
+    this.timeInterval = setInterval(function() {return false;}, 0);
+  }
+
   function getTimeRemaining(totaltime, endtime) {
     var t = endtime - ServerDate.now();
     var seconds = Math.round((t / 1000) % 60);
@@ -13,14 +20,35 @@
     };
   };
 
-  function initializeClockWithData(id, data, timeInterval) {
-    var timerEnd = new ServerDate(ServerDate.parse(new ServerDate(data.timerEnd)));
-    var timerLength = parseFloat(data.timerLength);
-    return initializeClock(id, timerEnd, timerLength, timeInterval);
+  function initializeClockWithData(id, data) {
+    clearInterval(this.timeInterval);
+    if(!isNaN(data.timerLength) && data.timerLength > 0) {
+      var waitInterval = setInterval(function()
+      {
+        if (ServerDate.is_synchronized()) {
+          clearInterval(waitInterval);
+          var timerEnd = new ServerDate(ServerDate.parse(new ServerDate(data.timerEnd)));
+          var timerLength = parseFloat(data.timerLength);
+          return initializeSyncedClock(id, timerEnd, timerLength, timeInterval);
+        }
+      }, 500);
+    }
   };
 
-  function initializeClock(id, endtime, timerLength, timeInterval) {
-    clearInterval(timeInterval);
+  function initializeClock(id, endtime, timerLength) {
+    clearInterval(this.timeInterval);
+    if(data.timerLength && data.timerLength > 0) {
+      var waitInterval = setInterval(function()
+      {
+        if (ServerDate.is_synchronized()) {
+          clearInterval(waitInterval);
+          return initializeSyncedClock(id, timerEnd, timerLength, timeInterval);
+        }
+      }, 500);
+    }
+  };
+
+  function initializeSyncedClock(id, endtime, timerLength) {
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');
     const secondsSpan = clock.querySelector('.seconds');
@@ -51,7 +79,7 @@
       if (t.total <= 0) {
         minutesSpan.innerHTML = ('00');
         secondsSpan.innerHTML = ('00');
-        clearInterval(timeInterval);
+        clearInterval(this.timeInterval);
       }
       else {
         minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
@@ -60,6 +88,6 @@
     }
 
     updateClock();
-    timeInterval = setInterval(updateClock, 1000);
-    return timeInterval;
+    this.timeInterval = setInterval(updateClock, 1000);
   };
+}

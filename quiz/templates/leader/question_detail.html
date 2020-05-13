@@ -136,7 +136,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
           {
             if (ServerDate.is_synchronized()) {
               clearInterval(waitInterval);
-              timeInterval = initializeClockWithData('timerCountdown', data, timeInterval);
+              timer.initializeClockWithData('timerCountdown', data);
               return;
             }
           }, 500);
@@ -215,7 +215,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
       chatSocket.sendMessage({ command: 'set_timer', questionID: questionID, gameID: roomCode, timerLength: timerLength });
     };
 
-    var timeInterval = setInterval(function() {return false;}, 0);
+    var timer = new Timer();
 </script>
 
 
