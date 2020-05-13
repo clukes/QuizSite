@@ -42,7 +42,6 @@ No current game
 {{ request.session.username|json_script:"username"}}
 
 {% load static %}
-<script src="{% static 'scripts/ServerDate.js' %}"></script>
 <script src="{% static 'scripts/timer.js' %}"></script>
 <script>
   $(document).ready(function() {
@@ -52,7 +51,7 @@ No current game
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
-      var timer = new Timer();
+      var timeInterval = setInterval(function() {return false;}, 0);
 
       var protocol = '';
       if (window.location.protocol === 'https:') {
@@ -115,7 +114,9 @@ No current game
           form.style.display = "block";
           answers.style.display = "none";
           document.getElementById("current-answer").innerHTML = data.answer;
-          timer.initializeClockWithData('timerCountdown', data);
+          var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
+          console.log(timerEnd);
+          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
           if(question.multiple_choice_form) {
             document.getElementById('options').innerHTML = question.multiple_choice_form;
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMultipleChoiceForm(event);})
@@ -269,14 +270,8 @@ No current game
         else if (command === 'timer') {
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
-            var waitInterval = setInterval(function()
-            {
-              if (ServerDate.is_synchronized()) {
-                clearInterval(waitInterval);
-                timer.initializeClockWithData('timerCountdown', data);
-                return;
-              }
-            }, 500);
+            var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
+            timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
           }
         }
         else if (command === 'playerList') {

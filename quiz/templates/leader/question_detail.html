@@ -72,7 +72,6 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 {{ request.session.currentGameCode|json_script:"currentGameCode" }}
 {{ genericquestion.id|json_script:"questionID" }}
 {% load static %}
-<script src="{% static 'scripts/ServerDate.js' %}"></script>
 <script src="{% static 'scripts/timer.js' %}"></script>
 <script>
     const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
@@ -96,7 +95,6 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     chatSocket.onopen = function() {
       console.log( 'opened' );
       chatSocket.sendMessage({ command: 'get_player_list', gameID: roomCode });
-      chatSocket.sendMessage({ command: 'get_timer', gameID: roomCode, timerLength: timerLength });
     };
 
     chatSocket.sendMessage = function(data) {
@@ -132,14 +130,8 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
       }
       else if (command === 'timer') {
         if(questionID == data.questionID) {
-          var waitInterval = setInterval(function()
-          {
-            if (ServerDate.is_synchronized()) {
-              clearInterval(waitInterval);
-              timer.initializeClockWithData('timerCountdown', data);
-              return;
-            }
-          }, 500);
+          var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
+          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
         }
       }
       else if (command === 'playerList') {
@@ -215,7 +207,9 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
       chatSocket.sendMessage({ command: 'set_timer', questionID: questionID, gameID: roomCode, timerLength: timerLength });
     };
 
-    var timer = new Timer();
+    var timeInterval = setInterval(function() {return false;}, 0);
+    var timerEnd = new Date(Date.parse(new Date("{{ game.timerEnd.isoformat }}")));
+    timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
 </script>
 
 

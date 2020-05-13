@@ -2,7 +2,7 @@
 - TODO: Upload to heroku.
 
 ROUND PRIORITY LIST:
-- Audio (NEED FIND AUDIO HOST. MIXDROP GIVES ADS)
+- Audio /
 - Progressive Scoring Round (E.g. 1 second of song, 5 seconds, 10 seconds, save at what point someone answers)
 - Outsourced Round (Use Iframe to include another website. In database for the question, store url,
   and search string. Have submit button, when they click it it will search in the iframe for the string,
@@ -21,11 +21,10 @@ ROUND PRIORITY LIST:
 URGENT ISSUES:
 - If put 1 in partial it throws an error /
 - WTF IS HAPPENING WITH TIMER (The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
-- Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
 
 NON URGENT ISSUES:
 - maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
-- Keep game loading screen until timer sync is done.
+
 - Quiz End is a bit fast on the runners up screen.
 - Fireworks gif background on quiz end.
 - On mobile, make sure player list isn't making question space smaller.
@@ -59,6 +58,10 @@ NON URGENT ISSUES:
 - Back to question list button on leader question detail.
 
 - Do something about coming back and reusing username.
+
+- Maybe overlay text on image on round start screen.
+
+- Add background image for rounds.
 
 - Add date to game. Maybe start and end.
 

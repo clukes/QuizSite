@@ -1,14 +1,9 @@
-class Timer {
-  constructor() {
-    this.timeInterval = setInterval(function() {return false;}, 0);
-  }
-
-  getTimeRemaining(totaltime, endtime) {
-    var t = endtime - ServerDate.now();
-    var seconds = Math.round((t / 1000) % 60);
-    var minutes = Math.round((t / 1000 / 60) % 60);
-    var hours = Math.round((t / (1000 * 60 * 60)) % 24);
-    var days = Math.round(t / (1000 * 60 * 60 * 24));
+  function getTimeRemaining(totaltime, endtime) {
+    var t = Date.parse(endtime) - Date.parse(new Date());
+    var seconds = Math.floor((t / 1000) % 60);
+    var minutes = Math.floor((t / 1000 / 60) % 60);
+    var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
+    var days = Math.floor(t / (1000 * 60 * 60 * 24));
     return {
       'total': t,
       'days': days,
@@ -18,66 +13,33 @@ class Timer {
     };
   };
 
-  initializeClockWithData(id, data) {
-    clearInterval(this.timeInterval);
-    if(!isNaN(data.timerLength) && data.timerLength > 0) {
-      var waitInterval = setInterval(function()
-      {
-        if (ServerDate.is_synchronized()) {
-          clearInterval(waitInterval);
-          var timerEnd = new ServerDate(ServerDate.parse(new ServerDate(data.timerEnd)));
-          var timerLength = parseFloat(data.timerLength);
-          this.initializeSyncedClock(id, timerEnd, timerLength);
-        }
-      }, 500);
-    }
-  };
-
-  initializeClock(id, endtime, timerLength) {
-    clearInterval(this.timeInterval);
-    if(data.timerLength && data.timerLength > 0) {
-      var waitInterval = setInterval(function()
-      {
-        if (ServerDate.is_synchronized()) {
-          clearInterval(waitInterval);
-          initializeSyncedClock(id, timerEnd, timerLength);
-        }
-      }, 500);
-    }
-  };
-
-  initializeSyncedClock(id, endtime, timerLength) {
+  function initializeClock(id, endtime, timeInterval) {
+    clearInterval(timeInterval);
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');
     const secondsSpan = clock.querySelector('.seconds');
-    endtime = ServerDate.parse(endtime);
-    console.log(endtime);
-    var totaltime = endtime - ServerDate.now();
-    var totaltimeSeconds = totaltime/1000;
-    console.log(totaltimeSeconds);
-    if(totaltimeSeconds > timerLength || (timerLength > 0 && totaltimeSeconds < 0)) {
-      totaltime = timerLength * 1000;
-      endtime = ServerDate.now() + totaltime;
-      console.log(totaltime);
-    }
-    if(timerLength <= 0 || isNaN(endtime) || totaltime <= 0) {
-      clock.style.display = "none";
+    var totaltime = Date.parse(endtime) - Date.parse(new Date());
+    if(isNaN(endtime) || totaltime <= 0) {
+      clock.style.display="none";
       return false;
     }
     else {
-      clock.style.display = "block";
+      clock.style.display="block";
     }
     $("#" + id + " .progress-bar").finish().css("width","100%").animate({
       width: "0%"
     }, totaltime, "linear");
 
     function updateClock() {
-      var t = this.getTimeRemaining(totaltime, endtime);
+      var t = getTimeRemaining(totaltime, endtime);
 
       if (t.total <= 0) {
         minutesSpan.innerHTML = ('00');
         secondsSpan.innerHTML = ('00');
-        clearInterval(this.timeInterval);
+        // progressValue = 0;
+        // progress.style.width = progressValue + '%';
+        // progress.setAttribute('aria-valuenow', progressValue);
+        clearInterval(timeInterval);
       }
       else {
         minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
@@ -86,6 +48,6 @@ class Timer {
     }
 
     updateClock();
-    this.timeInterval = setInterval(updateClock, 1000);
+    timeInterval = setInterval(updateClock, 1000);
+    return timeInterval;
   };
-}

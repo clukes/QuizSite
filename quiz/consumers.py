@@ -148,7 +148,6 @@ class GameConsumer(WebsocketConsumer):
         question = game.currentQuestion
         answer = question.get_user_response(user, game).get_response()
         timerEnd = None
-        timerLength = None
         if not marking:
             if game.timerEnd:
                 timerEnd = str(game.timerEnd.isoformat())
@@ -157,7 +156,6 @@ class GameConsumer(WebsocketConsumer):
             'question': self.question_to_json(question),
             'marking': marking,
             'answer': answer,
-            'timerLength': (game.timerEnd - timezone.now()).total_seconds(),
             'timerEnd': timerEnd
         }
         self.send_message(content)
@@ -179,8 +177,7 @@ class GameConsumer(WebsocketConsumer):
                 'command': 'question',
                 'question': self.question_to_json(question),
                 'marking': False,
-                'timerLength': None,
-                'timerEnd': None,
+                'timerEnd': None
             }
         except Game.DoesNotExist:
             print("Game does not exist")
@@ -310,7 +307,6 @@ class GameConsumer(WebsocketConsumer):
                 content = {
                     'command': 'timer',
                     'questionID': questionID,
-                    'timerLength': (game.timerEnd - timezone.now()).total_seconds(),
                     'timerEnd': str(game.timerEnd.isoformat()),
                 }
                 self.send_message_to_group(content)
@@ -318,19 +314,6 @@ class GameConsumer(WebsocketConsumer):
             print("Game does not exist")
         except GenericQuestion.DoesNotExist:
             print("Question does not exist")
-
-    def get_timer(self, data):
-        try:
-            gameID = data['gameID']
-            game = Game.objects.get(id=gameID)
-            content = {
-                'command': 'timer',
-                'timerLength': (game.timerEnd - timezone.now()).total_seconds(),
-                'timerEnd': str(game.timerEnd.isoformat()),
-            }
-            self.send_message_to_group(content)
-        except Game.DoesNotExist:
-            print("Game does not exist")
 
     def set_text_answer(self, data):
         try:
@@ -593,7 +576,6 @@ class GameConsumer(WebsocketConsumer):
             'show_all_answers': show_all_answers,
             'show_correct_answer': show_correct_answer,
             'set_timer': set_timer,
-            'get_timer': get_timer,
             'get_player_list': get_player_list,
             'show_quiz_start': show_quiz_start,
             'show_quiz_end': show_quiz_end,
