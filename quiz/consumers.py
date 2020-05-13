@@ -593,6 +593,7 @@ class GameConsumer(WebsocketConsumer):
             'show_all_answers': show_all_answers,
             'show_correct_answer': show_correct_answer,
             'set_timer': set_timer,
+            'get_timer': get_timer,
             'get_player_list': get_player_list,
             'show_quiz_start': show_quiz_start,
             'show_quiz_end': show_quiz_end,

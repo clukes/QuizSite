@@ -1,4 +1,4 @@
-class Timer() {
+class Timer {
   var timeInterval;
 
   constructor() {
