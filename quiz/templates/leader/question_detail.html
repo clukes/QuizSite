@@ -96,6 +96,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     chatSocket.onopen = function() {
       console.log( 'opened' );
       chatSocket.sendMessage({ command: 'get_player_list', gameID: roomCode });
+      chatSocket.sendMessage({ command: 'get_timer', gameID: roomCode, timerLength: timerLength });
     };
 
     chatSocket.sendMessage = function(data) {
@@ -215,9 +216,6 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     };
 
     var timeInterval = setInterval(function() {return false;}, 0);
-    function getTimer() {
-      chatSocket.sendMessage({ command: 'get_timer', gameID: roomCode, timerLength: timerLength });
-    };
 </script>
 
 
