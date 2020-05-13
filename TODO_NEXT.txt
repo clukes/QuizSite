@@ -25,7 +25,7 @@ URGENT ISSUES:
 
 NON URGENT ISSUES:
 - maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
-
+- Keep game loading screen until timer sync is done.
 - Quiz End is a bit fast on the runners up screen.
 - Fireworks gif background on quiz end.
 - On mobile, make sure player list isn't making question space smaller.

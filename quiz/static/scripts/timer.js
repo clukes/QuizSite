@@ -3,7 +3,7 @@ class Timer {
     this.timeInterval = setInterval(function() {return false;}, 0);
   }
 
-  function getTimeRemaining(totaltime, endtime) {
+  getTimeRemaining(totaltime, endtime) {
     var t = endtime - ServerDate.now();
     var seconds = Math.round((t / 1000) % 60);
     var minutes = Math.round((t / 1000 / 60) % 60);
@@ -18,7 +18,7 @@ class Timer {
     };
   };
 
-  function initializeClockWithData(id, data) {
+  initializeClockWithData(id, data) {
     clearInterval(this.timeInterval);
     if(!isNaN(data.timerLength) && data.timerLength > 0) {
       var waitInterval = setInterval(function()
@@ -27,26 +27,26 @@ class Timer {
           clearInterval(waitInterval);
           var timerEnd = new ServerDate(ServerDate.parse(new ServerDate(data.timerEnd)));
           var timerLength = parseFloat(data.timerLength);
-          return initializeSyncedClock(id, timerEnd, timerLength, timeInterval);
+          this.initializeSyncedClock(id, timerEnd, timerLength);
         }
       }, 500);
     }
   };
 
-  function initializeClock(id, endtime, timerLength) {
+  initializeClock(id, endtime, timerLength) {
     clearInterval(this.timeInterval);
     if(data.timerLength && data.timerLength > 0) {
       var waitInterval = setInterval(function()
       {
         if (ServerDate.is_synchronized()) {
           clearInterval(waitInterval);
-          return initializeSyncedClock(id, timerEnd, timerLength, timeInterval);
+          initializeSyncedClock(id, timerEnd, timerLength);
         }
       }, 500);
     }
   };
 
-  function initializeSyncedClock(id, endtime, timerLength) {
+  initializeSyncedClock(id, endtime, timerLength) {
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');
     const secondsSpan = clock.querySelector('.seconds');
@@ -72,7 +72,7 @@ class Timer {
     }, totaltime, "linear");
 
     function updateClock() {
-      var t = getTimeRemaining(totaltime, endtime);
+      var t = this.getTimeRemaining(totaltime, endtime);
 
       if (t.total <= 0) {
         minutesSpan.innerHTML = ('00');
