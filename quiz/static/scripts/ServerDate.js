@@ -304,8 +304,6 @@ var interval = setInterval(function()
     log("Offset adjusted by " + delta + " ms to " + offset + " ms (target: "
       + target.value + " ms).");
   else {
-    console.log("synchronized");
-    synchronized = true;
     clearInterval(interval);
   }
 }, 1000);
