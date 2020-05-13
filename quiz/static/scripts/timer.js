@@ -1,9 +1,9 @@
   function getTimeRemaining(totaltime, endtime) {
-    var t = ServerDate.parse(endtime) - ServerDate.parse(new ServerDate());
-    var seconds = Math.floor((t / 1000) % 60);
-    var minutes = Math.floor((t / 1000 / 60) % 60);
-    var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
-    var days = Math.floor(t / (1000 * 60 * 60 * 24));
+    var t = endtime - ServerDate.now();
+    var seconds = Math.round((t / 1000) % 60);
+    var minutes = Math.round((t / 1000 / 60) % 60);
+    var hours = Math.round((t / (1000 * 60 * 60)) % 24);
+    var days = Math.round(t / (1000 * 60 * 60 * 24));
     return {
       'total': t,
       'days': days,
@@ -13,18 +13,33 @@
     };
   };
 
-  function initializeClock(id, endtime, timeInterval) {
+  function initializeClockWithData(id, data, timeInterval) {
+    var timerEnd = new ServerDate(ServerDate.parse(new ServerDate(data.timerEnd)));
+    var timerLength = parseFloat(data.timerLength);
+    return initializeClock(id, timerEnd, timerLength, timeInterval);
+  };
+
+  function initializeClock(id, endtime, timerLength, timeInterval) {
     clearInterval(timeInterval);
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');
     const secondsSpan = clock.querySelector('.seconds');
-    var totaltime = ServerDate.parse(endtime) - ServerDate.parse(new ServerDate());
-    if(isNaN(endtime) || totaltime <= 0) {
-      clock.style.display="none";
+    endtime = ServerDate.parse(endtime);
+    console.log(endtime);
+    var totaltime = endtime - ServerDate.now();
+    var totaltimeSeconds = totaltime/1000;
+    console.log(totaltimeSeconds);
+    if(totaltimeSeconds > timerLength || (timerLength > 0 && totaltimeSeconds < 0)) {
+      totaltime = timerLength * 1000;
+      endtime = ServerDate.now() + totaltime;
+      console.log(totaltime);
+    }
+    if(timerLength <= 0 || isNaN(endtime) || totaltime <= 0) {
+      clock.style.display = "none";
       return false;
     }
     else {
-      clock.style.display="block";
+      clock.style.display = "block";
     }
     $("#" + id + " .progress-bar").finish().css("width","100%").animate({
       width: "0%"
@@ -36,9 +51,6 @@
       if (t.total <= 0) {
         minutesSpan.innerHTML = ('00');
         secondsSpan.innerHTML = ('00');
-        // progressValue = 0;
-        // progress.style.width = progressValue + '%';
-        // progress.setAttribute('aria-valuenow', progressValue);
         clearInterval(timeInterval);
       }
       else {

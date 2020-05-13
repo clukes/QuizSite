@@ -33,7 +33,6 @@ var ServerDate = (function(serverNow) {
 // this script was generated (serverNow) and noticing the client time before
 // and after the script was loaded.  This gives us a good estimation of the
 // server's clock right away, which we later refine during synchronization.
-
 var
   // Remember when the script was loaded.
   scriptLoadTime = Date.now(),
@@ -105,7 +104,9 @@ ServerDate.amortizationRate = 25; // ms
 // server's clock is too great (threshold set below).  If that's the case then
 // we skip amortization and set the clock to match the server's clock
 // immediately.
-ServerDate.amortizationThreshold = 2000; // ms
+
+// ServerDate.amortizationThreshold = 2000; // ms
+ServerDate.amortizationThreshold = 0; // ms
 
 Object.defineProperty(ServerDate, "synchronizationIntervalDelay", {
   get: function() { return synchronizationIntervalDelay; },
@@ -124,6 +125,10 @@ Object.defineProperty(ServerDate, "synchronizationIntervalDelay", {
 // automatically synchronize again every synchronizationIntervalDelay.
 ServerDate.synchronizationIntervalDelay = 10 * 60 * 1000; // ms, 10 minutes
 
+var synchronized = false;
+ServerDate.is_synchronized = function() {
+  return synchronized;
+};
 /// PRIVATE
 
 // We need to work with precision as well as offset values, so bundle them
@@ -167,11 +172,14 @@ function setTarget(newTarget) {
       + " ms); skipping amortization.");
 
     offset = target;
+    console.log("synchronized");
+    synchronized = true;
   }
 }
 
 // Synchronize the ServerDate object with the server's clock.
 function synchronize() {
+  synchronized = false;
   var iteration = 1,
     requestTime, responseTime,
     best;
@@ -184,13 +192,13 @@ function synchronize() {
 	// so that we don't get the browser cached Javascript file.
         // Which character to use for concatenation (it's either ? or &) depends on if current URL already has some GET parameters
         var concatenationChar;
-        
+
         if (URL.indexOf('?') > -1) {
             concatenationChar='&';
         } else {
             concatenationChar='?';
         }
-        
+
 	request.open("HEAD", URL + concatenationChar + "noCache=" + Date.now() + parseInt(Math.random()*1000000));
 
     // At the earliest possible moment of the response, record the time at
@@ -283,7 +291,7 @@ setTarget(new Offset(offset, precision));
 
 // Amortization process.  Every second, adjust the offset toward the target by
 // a small amount.
-setInterval(function()
+var interval = setInterval(function()
 {
   // Don't let the delta be greater than the amortizationRate in either
   // direction.
@@ -295,6 +303,11 @@ setInterval(function()
   if (delta)
     log("Offset adjusted by " + delta + " ms to " + offset + " ms (target: "
       + target.value + " ms).");
+  else {
+    console.log("synchronized");
+    synchronized = true;
+    clearInterval(interval);
+  }
 }, 1000);
 
 // Synchronize whenever the page is shown again after losing focus.

@@ -72,6 +72,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 {{ request.session.currentGameCode|json_script:"currentGameCode" }}
 {{ genericquestion.id|json_script:"questionID" }}
 {% load static %}
+<script src="{% static 'scripts/ServerDate.js' %}"></script>
 <script src="{% static 'scripts/timer.js' %}"></script>
 <script>
     const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
@@ -130,8 +131,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
       }
       else if (command === 'timer') {
         if(questionID == data.questionID) {
-          var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
-          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+          timeInterval = initializeClockWithData('timerCountdown', data, timeInterval);
         }
       }
       else if (command === 'playerList') {
@@ -208,8 +208,21 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     };
 
     var timeInterval = setInterval(function() {return false;}, 0);
-    var timerEnd = new Date(Date.parse(new Date("{{ game.timerEnd.isoformat }}")));
-    timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+
+    var waitInterval = setInterval(function()
+    {
+      if (ServerDate.is_synchronized()) {
+        clearInterval(waitInterval);
+        readyTimer();
+        return;
+      }
+    }, 500);
+
+    function readyTimer() {
+      var timerEnd = new ServerDate(ServerDate.parse("{{ game.timerEnd.isoformat }}"));
+      var timerLength = new ServerDate(timerEnd) - ServerDate.now();
+      timeInterval = initializeClock('timerCountdown', timerEnd, timerLength, timeInterval);
+    };
 </script>
 
 

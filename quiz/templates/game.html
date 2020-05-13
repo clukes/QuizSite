@@ -115,9 +115,14 @@ No current game
           form.style.display = "block";
           answers.style.display = "none";
           document.getElementById("current-answer").innerHTML = data.answer;
-          var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
-          console.log(timerEnd);
-          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+          var waitInterval = setInterval(function()
+          {
+            if (ServerDate.is_synchronized()) {
+              clearInterval(waitInterval);
+              timeInterval = initializeClockWithData('timerCountdown', data, timeInterval);
+              return;
+            }
+          }, 500);
           if(question.multiple_choice_form) {
             document.getElementById('options').innerHTML = question.multiple_choice_form;
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMultipleChoiceForm(event);})
@@ -271,8 +276,7 @@ No current game
         else if (command === 'timer') {
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
-            var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
-            timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+            timeInterval = initializeClockWithData('timerCountdown', data, timeInterval);
           }
         }
         else if (command === 'playerList') {
