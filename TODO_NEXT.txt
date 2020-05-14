@@ -13,19 +13,19 @@ ROUND PRIORITY LIST:
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
+- Don't set display on screen until the end, when everything loaded /
+
 - Have edit answer button that puts current answer in text box.
 - Change username button.
 - Maybe change text box to text area. Grow with answer if possible.
 - Have hints, have possibility to send message to one player from leader screen.
 
 URGENT ISSUES:
-- If put 1 in partial it throws an error /
-- WTF IS HAPPENING WITH TIMER (The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
-- Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
+- Fix timer. Store current timerlength, update every time timer is requested. If timer is longer on users device, set it to timerlength.
+
 
 NON URGENT ISSUES:
 - maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
-- Keep game loading screen until timer sync is done.
 - Quiz End is a bit fast on the runners up screen.
 - Fireworks gif background on quiz end.
 - On mobile, make sure player list isn't making question space smaller.
@@ -35,6 +35,9 @@ NON URGENT ISSUES:
 - On game starting screen it shows game loading before the screen
 - Change colour of bonus, it clashes with indicating who you are.
 
+
+- TIMER PROBLEM: The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
+- Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 

@@ -105,14 +105,12 @@ No current game
         }
         else if(question.type == 'a') {
           document.getElementById('audio').style.display="block";
-          document.getElementById('audioFrame').src = question.media_url;
+          document.getElementById('audio-source').src = question.media_url;
         }
         var form = document.getElementById("form");
         var answers = document.getElementById("answers");
         document.getElementById('correct-answer-display').style.display = "none";
         if(data.marking === false) {
-          form.style.display = "block";
-          answers.style.display = "none";
           document.getElementById("current-answer").innerHTML = data.answer;
           var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
           console.log(timerEnd);
@@ -131,13 +129,10 @@ No current game
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
             document.getElementById("set-answer").onclick = handleForm;
           }
+          answers.style.display = "none";
+          form.style.display = "block";
           if(data.answer) {
             document.getElementById("current-answer-display").style.display="block";
-          }
-
-          if(question.type == 'a') {
-            var audioFrame = document.getElementById('audioFrame');
-            audioFrame.querySelector('.control .play').click();
           }
         }
         else {

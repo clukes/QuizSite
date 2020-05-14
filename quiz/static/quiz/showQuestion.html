@@ -2,7 +2,11 @@
 <div style="margin-top:20px;">
   <p id="image" style="display:none;"><img id="questionImg" src="" alt="Question Image" style="width:75%;"></p>
   <div id="video" style="display:none;width:100%;height:0px;position:relative;padding-bottom:56.250%;"><iframe id="videoFrame" src="" frameborder="0" width="100%" height="100%" allowfullscreen style="width:100%;height:100%;position:absolute;left:0px;top:0px;overflow:hidden;"></iframe></div>
-  <div id="audio" style="display:none;"><iframe id="audioFrame" width="100%" height="200" src="" frameborder="0"></iframe></div>
+  <div id="audio" style="display:none;">
+    <audio controls>
+    <source id="audio-source" src="" type="audio/mpeg">
+    </audio>
+</div>
   <p><strong id="question" class="text-info"></strong></p>
   <form id="form" action="" onsubmit="return false">
     <p id="current-answer-display" style="display:none;">Current answer: <span class="text-warning" id="current-answer"></span></p>
