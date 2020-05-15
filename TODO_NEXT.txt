@@ -2,13 +2,14 @@
 - TODO: Upload to heroku.
 
 ROUND PRIORITY LIST:
-- Audio (NEED FIND AUDIO HOST. MIXDROP GIVES ADS)
+- Audio (NEED FIND AUDIO HOST. MIXDROP GIVES ADS) /
 - Progressive Scoring Round (E.g. 1 second of song, 5 seconds, 10 seconds, save at what point someone answers)
 - Outsourced Round (Use Iframe to include another website. In database for the question, store url,
   and search string. Have submit button, when they click it it will search in the iframe for the string,
   in order to get their answer. MIGHT NOT BE POSSIBLE, CROSS-SITE JAVASCRIPT IS NOT POSSIBLE.
   SO CANNOT EASILY SEARCH IN IFRAME)
 - Questions all on one page, pages have connection.
+- Crossword.
 
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
@@ -25,6 +26,7 @@ URGENT ISSUES:
 
 
 NON URGENT ISSUES:
+- When players tie, they are given the same ranking.
 - maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
 - Quiz End is a bit fast on the runners up screen.
 - Fireworks gif background on quiz end.
@@ -40,6 +42,8 @@ NON URGENT ISSUES:
 - Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
+
+- Make logo.
 
 - On player list, show who's answered. Have a counter, 3/6 peoples answered.
 

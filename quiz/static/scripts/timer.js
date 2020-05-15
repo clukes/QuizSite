@@ -1,4 +1,4 @@
-  function getTimeRemaining(totaltime, endtime) {
+  function getTimeRemaining(endtime) {
     var t = Date.parse(endtime) - Date.parse(new Date());
     var seconds = Math.floor((t / 1000) % 60);
     var minutes = Math.floor((t / 1000 / 60) % 60);
@@ -13,12 +13,16 @@
     };
   };
 
-  function initializeClock(id, endtime, timeInterval) {
+  function initializeClock(id, endtime, timerRemaining, timeInterval) {
     clearInterval(timeInterval);
+    var totaltime = Date.parse(endtime) - Date.parse(new Date());
+    if(totaltime > timerRemaining || (totaltime < timerRemaining - 5)) {
+      totaltime = timerRemaining;
+      endtime = Date.parse(new Date()) + timerRemaining;
+    }
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');
     const secondsSpan = clock.querySelector('.seconds');
-    var totaltime = Date.parse(endtime) - Date.parse(new Date());
     if(isNaN(endtime) || totaltime <= 0) {
       clock.style.display="none";
       return false;
@@ -31,7 +35,7 @@
     }, totaltime, "linear");
 
     function updateClock() {
-      var t = getTimeRemaining(totaltime, endtime);
+      var t = getTimeRemaining(endtime);
 
       if (t.total <= 0) {
         minutesSpan.innerHTML = ('00');

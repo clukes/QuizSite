@@ -156,7 +156,8 @@ class GameConsumer(WebsocketConsumer):
             'question': self.question_to_json(question),
             'marking': marking,
             'answer': answer,
-            'timerEnd': timerEnd
+            'timerEnd': timerEnd,
+            'timerRemaining': game.get_time_remaining()
         }
         self.send_message(content)
 
@@ -308,6 +309,7 @@ class GameConsumer(WebsocketConsumer):
                     'command': 'timer',
                     'questionID': questionID,
                     'timerEnd': str(game.timerEnd.isoformat()),
+                    'timerRemaining': game.get_time_remaining()
                 }
                 self.send_message_to_group(content)
         except Game.DoesNotExist:

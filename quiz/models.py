@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from decimal import Decimal
 from django.template import defaultfilters
 from django.core import serializers
+from django.utils import timezone
 
 QUESTION_TYPES = (
     ('t', 'Text'),
@@ -295,3 +296,9 @@ class Game(models.Model):
 
     def get_scores(self):
         return UserScore.objects.filter(game=self).order_by('-score')
+
+    def get_time_remaining(self):
+        """Time left on timer in milliseconds."""
+        if self.timerEnd:
+            return (self.timerEnd - timezone.now()).total_seconds()
+        return false
