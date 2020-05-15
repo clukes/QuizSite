@@ -1,5 +1,6 @@
   function getTimeRemaining(endtime) {
     var t = Date.parse(endtime) - Date.parse(new Date());
+    console.log(t);
     var seconds = Math.floor((t / 1000) % 60);
     var minutes = Math.floor((t / 1000 / 60) % 60);
     var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
@@ -13,12 +14,12 @@
     };
   };
 
-  function initializeClock(id, endtime, timerRemaining, timeInterval) {
+  function initializeClock(id, endtime, timeRemaining, timeInterval) {
     clearInterval(timeInterval);
     var totaltime = Date.parse(endtime) - Date.parse(new Date());
-    if(totaltime > timerRemaining || (totaltime < timerRemaining - 5)) {
-      totaltime = timerRemaining;
-      endtime = Date.parse(new Date()) + timerRemaining;
+    if(timeRemaining !== null && (totaltime > timeRemaining || (totaltime < timeRemaining - 5))) {
+      totaltime = timeRemaining;
+      endtime = new Date(Date.now() + timeRemaining);
     }
     const clock = document.getElementById(id);
     const minutesSpan = clock.querySelector('.minutes');

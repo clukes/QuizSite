@@ -300,5 +300,5 @@ class Game(models.Model):
     def get_time_remaining(self):
         """Time left on timer in milliseconds."""
         if self.timerEnd:
-            return (self.timerEnd - timezone.now()).total_seconds()
+            return (self.timerEnd - timezone.now()).total_seconds() * 1000
         return false

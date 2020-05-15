@@ -114,7 +114,7 @@ No current game
           document.getElementById("current-answer").innerHTML = data.answer;
           var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
           console.log(timerEnd);
-          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+          timeInterval = initializeClock('timerCountdown', timerEnd, data.timeRemaining, timeInterval);
           if(question.multiple_choice_form) {
             document.getElementById('options').innerHTML = question.multiple_choice_form;
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMultipleChoiceForm(event);})
@@ -266,7 +266,7 @@ No current game
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
             var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
-            timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+            timeInterval = initializeClock('timerCountdown', timerEnd, data.timeRemaining, timeInterval);
           }
         }
         else if (command === 'playerList') {

@@ -46,7 +46,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 <form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
   <strong>{{user}}</strong> - <span id="{{user}}">{{response.get_response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
   <input type="hidden" name="responseID" value="{{response.id}}"/>
-  <input id="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
+  <input name="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
   <label><input type="radio" name="mark" class="correct">Correct</label> &emsp;
   <label><input type="radio" name="mark" class="incorrect">Incorrect</label> &emsp;
   <label><input type="radio" name="mark" class="manual">
@@ -135,7 +135,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
       else if (command === 'timer') {
         if(questionID == data.questionID) {
           var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
-          timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+          timeInterval = initializeClock('timerCountdown', timerEnd, data.timeRemaining, timeInterval);
         }
       }
       else if (command === 'playerList') {
@@ -213,7 +213,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 
     var timeInterval = setInterval(function() {return false;}, 0);
     var timerEnd = new Date(Date.parse(new Date("{{ game.timerEnd.isoformat }}")));
-    timeInterval = initializeClock('timerCountdown', timerEnd, timeInterval);
+    timeInterval = initializeClock('timerCountdown', timerEnd, null, timeInterval);
 </script>
 
 
