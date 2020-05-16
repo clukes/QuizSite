@@ -45,7 +45,6 @@ class GenericQuestion(models.Model):
 
     class Meta:
         unique_together = (('number', 'round'), ('content_type', 'object_id'))
-
         ordering = ['round', 'number']
 
     def __str__(self):
@@ -70,6 +69,14 @@ class GenericQuestion(models.Model):
     def get_all_responses(self, game):
         return self.genericresponse_set.filter(game=game).all().order_by('user')
 
+    @property
+    def next_question(self):
+        return self.round.genericquestion_set.filter(number__gt=self.number).order_by('number').first()
+
+    @property
+    def previous_question(self):
+        return self.round.genericquestion_set.filter(number__lt=self.number).order_by('-number').first()
+
 class QuestionDetail(models.Model):
     class Meta:
         abstract = True
@@ -82,7 +89,7 @@ class QuestionDetail(models.Model):
 
     @property
     def generic_question(self):
-        # Return the object in exists
+        # Return the object if exists
         # else None
         return self.generic_question_relation.first()
 
@@ -301,4 +308,4 @@ class Game(models.Model):
         """Time left on timer in milliseconds."""
         if self.timerEnd:
             return (self.timerEnd - timezone.now()).total_seconds() * 1000
-        return false
+        return None

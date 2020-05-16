@@ -20,14 +20,32 @@ def index(request):
             if username_form.is_valid():
                 try:
                     name = username_form.cleaned_data['username']
-                    user = User()
+                    if(request.session.get('changeUsername')):
+                        userID = request.session.get('userID')
+                        user = User.objects.get(id=userID)
+                    else:
+                        user = User()
                     user.username = name
                     user.save()
                     request.session['userID'] = user.id
                     request.session['username'] = user.username
+                    request.session['changeUsername'] = False
+                except User.DoesNotExist:
+                    messages.add_message(request, messages.ERROR, "User not in database.")
+                    request.session['userID'] = None
+                    request.session['username'] = None
+                    request.session['currentGameCode'] = None
+                    request.session['changeUsername'] = False
                 except IntegrityError as e:
                     messages.add_message(request, messages.ERROR, "Username not unique.")
                 return HttpResponseRedirect(reverse('index'))
+        elif 'change-name' in request.POST:
+            request.session['changeUsername'] = True
+            return HttpResponseRedirect(reverse('index'))
+        elif 'cancel-name' in request.POST:
+            username_form = UsernameForm()
+            request.session['changeUsername'] = False
+            return HttpResponseRedirect(reverse('index'))
         elif 'join-room' in request.POST:
             join_room_form = JoinRoomForm(request.POST)
             if join_room_form.is_valid():

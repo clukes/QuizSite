@@ -2,6 +2,7 @@
 
 {% block content %}
   <h1>Round {{ round.number }} - {{ round.title }}</h1>
+  <p><a href="{{ round.quiz.get_absolute_url }}" class="btn btn-success">Back to Quiz Page</a></p>
   <input id="show-round-start" type="button" class="btn btn-success" onclick="showRoundStart(event)" value="Show Round Start Screen"> &emsp;
   <input id="show-round-transition" type="button" class="btn btn-success" onclick="showRoundTransition(event)" value="Show Round Transition Screen"> &emsp;
   <input id="show-round-end" type="button" class="btn btn-success" onclick="showRoundEnd(event)" value="Show Round End Screen"> &emsp;

@@ -16,14 +16,12 @@ ROUND PRIORITY LIST:
 
 - Don't set display on screen until the end, when everything loaded /
 
-- Have edit answer button that puts current answer in text box.
+- Have edit answer button that puts current answer in text box. /
+- Maybe change text box to text area. Grow with answer if possible. /
 - Change username button.
-- Maybe change text box to text area. Grow with answer if possible.
 - Have hints, have possibility to send message to one player from leader screen.
 
 URGENT ISSUES:
-- Fix timer. Store current timerlength, update every time timer is requested. If timer is longer on users device, set it to timerlength.
-
 
 NON URGENT ISSUES:
 - When players tie, they are given the same ranking.
@@ -38,8 +36,8 @@ NON URGENT ISSUES:
 - Change colour of bonus, it clashes with indicating who you are.
 
 
-- TIMER PROBLEM: The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
-- Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
+- / TIMER PROBLEM: The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
+- /  Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 

@@ -43,6 +43,7 @@ No current game
 
 {% load static %}
 <script src="{% static 'scripts/timer.js' %}"></script>
+<script src="{% static 'scripts/autosize.js' %}"></script>
 <script>
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
@@ -126,8 +127,16 @@ No current game
           }
           else {
             document.getElementById('id_response').value = "";
+            autosize(document.querySelectorAll('textarea'));
+            $("#id_response").keypress(function (e) {
+              if(e.which == 13 && !e.shiftKey) {
+                e.preventDefault();
+                handleForm();
+              }
+            });
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
             document.getElementById("set-answer").onclick = handleForm;
+            document.getElementById("edit-answer").onclick = editAnswer;
           }
           answers.style.display = "none";
           form.style.display = "block";
@@ -234,6 +243,7 @@ No current game
             if(answer.answer) {
               document.getElementById("current-answer-display").style.display="block";
               document.getElementById('id_response').value = "";
+              autosize.update(document.getElementById('id_response'));
             }
           }
         }
@@ -284,16 +294,22 @@ No current game
       };
 
       function handleForm(event) {
-        answer = document.getElementById('id_response').value;
-        questionID = document.getElementById('question-id').value;
+        var answer = document.getElementById('id_response').value;
+        var questionID = document.getElementById('question-id').value;
         chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
       };
 
       function handleMultipleChoiceForm(event) {
-        answer = $("input[name=response]:checked").parent().text().trimLeft();
+        var answer = $("input[name=response]:checked").parent().text().trimLeft();
         console.log(answer);
-        questionID = document.getElementById('question-id').value;
+        var questionID = document.getElementById('question-id').value;
         chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
+      };
+
+      function editAnswer(event) {
+        response = document.getElementById('id_response');
+        response.value = document.getElementById('current-answer').innerHTML;
+        autosize.update(response);
       };
 
       function fadeIn(element) {

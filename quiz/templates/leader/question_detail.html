@@ -3,6 +3,16 @@
 {% block content %}
 <h1>Round {{ genericquestion.round.number }} - {{ genericquestion.round.title }}</h1>
   <h2>Question {{genericquestion.number}}</h2>
+  {% if genericquestion.previous_question %}
+  <a href="{{ genericquestion.previous_question.get_absolute_url }}" class="btn btn-success">Previous Question</a>
+  {% else %}
+  <a href="{{ genericquestion.round.get_absolute_url }}" class="btn btn-success">Back to Round</a>
+  {% endif %}
+  {% if genericquestion.next_question %}
+  <a href="{{ genericquestion.next_question.get_absolute_url }}" class="btn btn-success">Next Question</a>
+  {% else %}
+  <a href="{{ genericquestion.round.get_absolute_url }}" class="btn btn-success">Back to Round</a>
+  {% endif %}
   <div style="margin-top:20px">
     {% if genericquestion.type == 'i' %}
     <p><img src="{{genericquestion.media_url}}" alt="Question Image" style="width:75%;"></p>
@@ -60,7 +70,6 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 <input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
 </p>
 <br><br>
-<p id='data'></p>
 {% endif %}
 {% endblock %}
 
