@@ -18,12 +18,13 @@ ROUND PRIORITY LIST:
 
 - Have edit answer button that puts current answer in text box. /
 - Maybe change text box to text area. Grow with answer if possible. /
-- Change username button.
+- Change username button. /
 - Have hints, have possibility to send message to one player from leader screen.
 
 URGENT ISSUES:
 
 NON URGENT ISSUES:
+- Can't see round images on mobile.
 - When players tie, they are given the same ranking.
 - maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
 - Quiz End is a bit fast on the runners up screen.
@@ -37,7 +38,7 @@ NON URGENT ISSUES:
 
 
 - / TIMER PROBLEM: The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
-- /  Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
+- / Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
 
 - On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 

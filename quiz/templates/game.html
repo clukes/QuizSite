@@ -106,7 +106,7 @@ No current game
         }
         else if(question.type == 'a') {
           document.getElementById('audio').style.display="block";
-          document.getElementById('audio-source').src = question.media_url;
+          document.getElementById('audio-player').setAttribute('src', question.media_url);
         }
         var form = document.getElementById("form");
         var answers = document.getElementById("answers");
