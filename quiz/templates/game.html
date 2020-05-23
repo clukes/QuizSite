@@ -48,8 +48,6 @@ No current game
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
       var onRoundStart = false;
-      var currentQuestionMultipleChoice = false;
-      var currentQuestionProgressive = false;
       var currentStage = 0;
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
@@ -257,10 +255,6 @@ No current game
           multiple_choice = !(question.multiple_choice_form == null)
           progressive = !(question.progressive_info == null)
           if(question.id) {
-            if(document.getElementById('question-id') && multiple_choice == currentQuestionMultipleChoice && progressive == currentQuestionProgressive) {
-              loadQuestion(data);
-            }
-            else {
               if(multiple_choice) {
                 $("#current-screen").load("{% static 'quiz/showMultipleChoiceQuestion.html' %}", function() {
                   loadQuestion(data);
@@ -276,9 +270,6 @@ No current game
                   loadQuestion(data);
                 });
               }
-              currentQuestionMultipleChoice = multiple_choice;
-              currentQuestionProgressive = progressive;
-            }
           }
         }
         else if (command === 'answer') {

@@ -15,7 +15,7 @@
 <body>
   <div class="container-fluid h-100">
     <div id="page-row" class="row h-100">
-      <div class="col-sm-2">
+      <div class="col-sm-2 px-sm-2 p-0">
       {% block sidebar %}
       <ul class="nav nav-pills">
         <li class="nav-item">
@@ -24,7 +24,7 @@
       </ul>
      {% endblock %}
       </div>
-      <div id="content" class="col-sm-8 text-center my-auto">
+      <div id="content" class="col-sm-8 text-center my-auto h-100">
         <noscript>You need to enable JavaScript to properly use this website.</noscript>
         {% block content %}{% endblock %}
         {% if messages %}
