@@ -11,6 +11,13 @@
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
   {% block style %}
   {% endblock %}
+  <style>
+  @media (max-width: 575px) {
+    #content{
+      height:100vh;
+    }
+  }
+</style>
 </head>
 <body>
   <div class="container-fluid h-100">
@@ -24,7 +31,7 @@
       </ul>
      {% endblock %}
       </div>
-      <div id="content" class="col-sm-8 text-center my-auto h-100">
+      <div id="content" class="col-sm-8 text-center my-auto">
         <noscript>You need to enable JavaScript to properly use this website.</noscript>
         {% block content %}{% endblock %}
         {% if messages %}
