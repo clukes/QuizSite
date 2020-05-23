@@ -345,7 +345,7 @@ No current game
         var answer = $("input[name=response]:checked").parent().text().trimLeft();
         console.log(answer);
         var questionID = document.getElementById('question-id').value;
-        chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
+        chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: null });
       };
 
       function editAnswer(event) {
