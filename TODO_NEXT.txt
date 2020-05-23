@@ -1,6 +1,8 @@
 - LEFTOFF: Mostly finished progressive round.
 - TODO: Update max points on leader screen when answer submitted.
 
+URGENT: ON MOBILE WHEN TYPING THE PLAYER LIST COVERS ANSWER. ANSWERS GO UNDER PLAYER LIST.
+
 PRIORITY:
 1. Progressive Round
   - Get media displaying.
@@ -44,6 +46,8 @@ NON URGENT ISSUES:
 
 
 - Make logo.
+
+- Text overlay on round start screen overlaps home button on mobile.
 
 - On player list, show who's answered. Have a counter, 3/6 peoples answered.
 
