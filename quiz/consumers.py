@@ -2,7 +2,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from quiz.models import GenericQuestion, User, Game, GenericResponse, TextResponse, User, Quiz, Round
+from quiz.models import GenericQuestion, User, Game, GenericResponse, TextResponse, UserScore, UserProgressiveStage, Quiz, Round
 from quiz.forms import MultipleChoiceForm
 from django.template import defaultfilters
 from django.db import close_old_connections
@@ -12,6 +12,7 @@ from channels.auth import AuthMiddlewareStack
 from django.contrib.auth.models import AnonymousUser
 from django.core import serializers
 from django.utils import timezone
+from django.db.models import F
 
 class QueryAuthMiddleware:
     """
@@ -67,7 +68,6 @@ class GameConsumer(WebsocketConsumer):
         self.send_message_to_group(message)
 
     def get_quiz_start(self, data):
-        user = data['user']
         game = data['game']
         quiz = game.currentQuiz
 
@@ -80,7 +80,6 @@ class GameConsumer(WebsocketConsumer):
         self.send_message(message)
 
     def get_quiz_end(self, data):
-        user = data['user']
         game = data['game']
         quiz = game.currentQuiz
         scores = game.get_scores()
@@ -93,7 +92,6 @@ class GameConsumer(WebsocketConsumer):
         self.send_message(message)
 
     def get_round_start(self, data):
-        user = data['user']
         game = data['game']
         round = game.currentRound
 
@@ -113,7 +111,6 @@ class GameConsumer(WebsocketConsumer):
         self.send_message(message)
 
     def get_round_end(self, data):
-        user = data['user']
         game = data['game']
         round = game.currentRound
         scores = game.get_scores()
@@ -151,11 +148,16 @@ class GameConsumer(WebsocketConsumer):
         if not marking:
             if game.timerEnd:
                 timerEnd = str(game.timerEnd.isoformat())
+        currentStage = 0
+        if question.question_type == 'p':
+            userStage, created = UserProgressiveStage.objects.get_or_create(user=user, game=game, question=question.detail)
+            currentStage = userStage.current_stage
         content = {
             'command': 'question',
             'question': self.question_to_json(question),
             'marking': marking,
             'answer': answer,
+            'currentStage': currentStage,
             'timerEnd': timerEnd,
             'timeRemaining': game.get_time_remaining()
         }
@@ -260,7 +262,6 @@ class GameConsumer(WebsocketConsumer):
                 'marking': response.get_marking_display(),
                 'points': response.get_points(),
             }
-            print(content)
             self.send_message(content)
             self.show_answer(data)
         except GenericResponse.DoesNotExist:
@@ -323,10 +324,11 @@ class GameConsumer(WebsocketConsumer):
             questionID = data['questionID']
             answer = data['answer']
             gameID = data['gameID']
+            maxPoints = data['maxPoints']
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.type in ['t', 'i', 'v', 'a']):
+            if(question.question_type in ['t', 'm', 'p']):
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)
@@ -336,21 +338,50 @@ class GameConsumer(WebsocketConsumer):
                     response_detail = response.response_detail
                     response_detail.response = answer
                     response_detail.save()
+                if(maxPoints):
+                    response.max_points = maxPoints
+                    response.save()
                 content = {
                     'username': user.username,
                     'answer': answer,
-                    'questionID': question.id
+                    'questionID': question.id,
+                    'maxPoints': defaultfilters.floatformat(maxPoints, "-2")
                 }
-            else:
-                content = {}
+                message = {
+                    'command': 'answer',
+                    'answer': content
+                }
+                self.send_message_to_group(message)
         except (User.DoesNotExist, GenericQuestion.DoesNotExist, TextResponse.DoesNotExist, Game.DoesNotExist) as e:
-            content = {}
+            pass
 
-        message = {
-            'command': 'answer',
-            'answer': content
-        }
-        self.send_message_to_group(message)
+    def increment_user_progressive_stage(self, data):
+        try:
+            questionID = data['questionID']
+            question = GenericQuestion.objects.get(id=questionID)
+            if(question.question_type == 'p'):
+                gameID = data['gameID']
+                userID = data['userID']
+                currentStage = data['currentStage']
+                maxPoints = data['maxPoints']
+
+                game = Game.objects.get(id=gameID)
+                user = User.objects.get(id=userID)
+
+                UserProgressiveStage.objects.filter(game=game, user=user, question=question.detail).update(current_stage = F("current_stage") + 1)
+
+                response = GenericResponse.objects.get(game=game, user=user, question=question)
+                response.max_points = maxPoints
+                response.save()
+
+                message = {
+                    'command': 'updateMaxPoints',
+                    'responseID': response.id,
+                    'maxPoints': defaultfilters.floatformat(maxPoints, "-2")
+                }
+                self.send_message_to_group(message)
+        except (User.DoesNotExist, GenericQuestion.DoesNotExist, UserProgressiveStage.DoesNotExist, Game.DoesNotExist, GenericResponse.DoesNotExist) as e:
+            pass
 
     def get_player_list(self, data):
         try:
@@ -475,15 +506,23 @@ class GameConsumer(WebsocketConsumer):
             return None
         image = None
         multiple_choice_form = None
-        if question.multiple_choice is True:
+        progressive_info = None
+        if question.question_type == 'm':
             multiple_choice_form = MultipleChoiceForm(instance = question.detail).as_p()
+        if question.question_type == 'p':
+            progressive_stages = serializers.serialize("json", question.detail.stages.all())
+            progressive_info = {'max_points': defaultfilters.floatformat(question.detail.max_points, "-2"),
+                                'min_points': defaultfilters.floatformat(question.detail.min_points, "-2"),
+                                'step': defaultfilters.floatformat(question.detail.step, "-2"),
+                                'stages': progressive_stages}
         return {
             'id': question.id,
             'number': question.number,
             'question': question.question,
-            'type': question.type,
+            'media_type': question.media_type,
             'media_url': question.media_url,
-            'multiple_choice_form': multiple_choice_form
+            'multiple_choice_form': multiple_choice_form,
+            'progressive_info': progressive_info
         }
 
     def construct_correct_icon(self, points):
@@ -537,7 +576,7 @@ class GameConsumer(WebsocketConsumer):
         marking = self.MARKING_ICONS[response.marking](self, response.points)
         points = defaultfilters.floatformat(response.points, "-2")
         bonus=""
-        if(response.points > 1):
+        if(response.points > response.max_points):
             bonus="<span style='color:lawngreen'> Bonus!</span>"
         html = (f"<span id='answers-{username}'>"
                 f"<strong>{username}</strong> - {answer} "
@@ -572,6 +611,7 @@ class GameConsumer(WebsocketConsumer):
             'get_current_screen': get_current_screen,
             'change_question': change_question,
             'set_text_answer': set_text_answer,
+            'increment_user_progressive_stage': increment_user_progressive_stage,
             'mark_question': mark_question,
             'show_answer': show_answer,
             'mark_answer': mark_answer,
@@ -616,7 +656,6 @@ class GameConsumer(WebsocketConsumer):
     # Receive message from WebSocket
     def receive(self, text_data):
         data = json.loads(text_data)
-        print("recieve" + str(self.scope["user"]))
 
         self.commands[data['command']](self, data)
 
@@ -638,14 +677,21 @@ class GameConsumer(WebsocketConsumer):
         message = event['message']
         user = self.scope['user']
         answer = ""
+        currentStage = 0
         if user.id is not None:
             questionID = message['question']['id']
+            game = user.game
             try:
                 question = GenericQuestion.objects.get(id=questionID)
                 answer = question.get_user_response(user, user.game).get_response()
+                if question.question_type == 'p':
+                    userStage, created = UserProgressiveStage.objects.get_or_create(user=user, game=game, question=question.detail)
+                    currentStage = userStage.current_stage
             except GenericQuestion.DoesNotExist:
                 pass
         message['answer'] = answer
+        message['currentStage'] = currentStage
+
         # Send message to WebSocket
         self.send(text_data=json.dumps(message))
 
@@ -670,6 +716,5 @@ class GameConsumer(WebsocketConsumer):
     def message_to_group(self, event):
         message = event['message']
 
-        print(message)
         # Send message to WebSocket
         self.send(text_data=json.dumps(message))

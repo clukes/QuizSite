@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 
 # Create your views here.
-from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore, Quiz
+from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore, UserProgressiveStage, Quiz
 from quiz.forms import TextReponseForm, UsernameForm, JoinRoomForm
 from django.contrib import messages
 from django.db import IntegrityError
@@ -141,6 +141,7 @@ def leaderHome(request):
                 game = Game.objects.get(id=gameID)
                 game.active = False
                 game.save()
+                UserProgressiveStage.objects.filter(game=game).delete()
                 userID = request.session.get('userID')
                 user = User.objects.get(id=userID)
                 user.game = None

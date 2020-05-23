@@ -5,12 +5,22 @@ from decimal import Decimal
 from django.template import defaultfilters
 from django.core import serializers
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
-QUESTION_TYPES = (
-    ('t', 'Text'),
+MEDIA_TYPES = (
+    ('n', 'None'),
     ('i', 'Image'),
     ('v', 'Video'),
     ('a', 'Audio')
+)
+
+QUESTION_TYPES = (
+    ('t', 'Text Question'),
+    ('m', 'Multiple Choice Question'),
+    ('p', 'Progressive Question')
 )
 
 RESPONSE_TYPES = (
@@ -24,13 +34,17 @@ class GenericQuestion(models.Model):
     question = models.CharField(max_length=500)
     answer = models.CharField(max_length=500)
     media_url = models.URLField(max_length=1000, null=True, blank=True)
+    media_type = models.CharField(
+        max_length=1,
+        choices=MEDIA_TYPES,
+        default='n',
+    )
 
-    type = models.CharField(
+    question_type = models.CharField(
         max_length=1,
         choices=QUESTION_TYPES,
         default='t',
     )
-    multiple_choice = models.BooleanField(default=False)
 
     object_id = models.IntegerField(null=True, blank=True)
     content_type = models.ForeignKey(
@@ -50,6 +64,12 @@ class GenericQuestion(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         return f'{self.round}: {self.question}'
+
+    def save(self, *args, **kwargs):
+        # change question type based on question detail
+        question_types = {key.casefold(): value for (value, key) in QUESTION_TYPES}
+        self.question_type = question_types[str(self.content_type).casefold()]
+        super(GenericQuestion, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
         """Returns the url to access the page for this round."""
@@ -85,7 +105,9 @@ class QuestionDetail(models.Model):
 
     def __str__(self):
         """String for representing the Model object."""
-        return self.generic_question.question
+        if self.generic_question:
+            return self.generic_question.question
+        return ''
 
     @property
     def generic_question(self):
@@ -107,6 +129,57 @@ class MultipleChoiceOption(models.Model):
         """String for representing the Model object."""
         return self.option
 
+class ProgressiveQuestion(QuestionDetail):
+    max_points = models.DecimalField(max_digits=10, decimal_places=2, default=3)
+    min_points = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    step = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    @property
+    def number_of_stages(self):
+        return self.stages.count()
+
+    def calculate_step(self):
+        if(self.number_of_stages <= 1):
+            return 0
+        return (self.max_points - self.min_points)/(self.number_of_stages - 1)
+
+    def save(self, *args, **kwargs):
+        # recalculate steps when max_points or min_points is changed
+        if not self.step:
+            self.step = self.calculate_step()
+        try:
+            this = ProgressiveQuestion.objects.get(id=self.id)
+            if this.max_points != self.max_points or this.min_points != self.min_points:
+                self.step = self.calculate_step()
+        except ProgressiveQuestion.DoesNotExist:
+            pass
+        super(ProgressiveQuestion, self).save(*args, **kwargs)
+
+class ProgressiveStage(QuestionDetail):
+    question = models.ForeignKey('ProgressiveQuestion', related_name='stages', on_delete=models.CASCADE, null=False)
+    text = models.CharField(max_length=500, null=True, blank=True)
+    media_url = models.URLField(max_length=1000, null=True, blank=True)
+
+    def __str__(self):
+        """String for representing the Model object."""
+        if self.text:
+            return self.text
+        if self.media_url:
+            return self.media_url
+        return ''
+
+    def clean(self):
+        super(ProgressiveStage, self).clean()
+        if not self.text and not self.media_url:  # This will check for None or Empty
+            raise ValidationError({'text': 'At least one of text or media_url should have a value.'})
+
+@receiver(post_save, sender=ProgressiveStage, dispatch_uid="update_step_number")
+@receiver(post_delete, sender=ProgressiveStage, dispatch_uid="update_step_number")
+def update_step(sender, instance, created=True, **kwargs):
+    if(created):
+        instance.question.step = instance.question.calculate_step()
+        instance.question.save()
+
 class GenericResponse(models.Model):
     """Model representing a generic response."""
     question = models.ForeignKey('GenericQuestion', on_delete=models.CASCADE, null=False)
@@ -124,6 +197,7 @@ class GenericResponse(models.Model):
         choices=MARKING_CHOICES,
         default='i',
     )
+    max_points = models.DecimalField(max_digits=10, decimal_places=2, default=1)
     points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     type = models.CharField(
@@ -151,7 +225,6 @@ class GenericResponse(models.Model):
         return f'{self.question}: {self.user} - {self.response_detail}'
 
     def add_response(self, response):
-        print("ADD")
         self.content_type = ContentType.objects.get_for_model(response)
         self.object_id = response.pk
         self.save()
@@ -161,6 +234,9 @@ class GenericResponse(models.Model):
         if self.response_detail:
             return self.response_detail.response
         return None
+
+    def get_max_points(self):
+        return defaultfilters.floatformat(self.max_points, "-2")
 
     def get_points(self):
         return defaultfilters.floatformat(self.points, "-2")
@@ -266,6 +342,15 @@ class UserScore(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         return f'{self.user}: {self.score}'
+
+class UserProgressiveStage(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, null=False)
+    game = models.ForeignKey('Game', on_delete=models.CASCADE, null=False)
+    question = models.ForeignKey('ProgressiveQuestion', on_delete=models.CASCADE, null=False)
+    current_stage = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'game', 'question')
 
 class Game(models.Model):
     """Model representing a game"""

@@ -14,11 +14,11 @@
   <a href="{{ genericquestion.round.get_absolute_url }}" class="btn btn-success">Back to Round</a>
   {% endif %}
   <div style="margin-top:20px">
-    {% if genericquestion.type == 'i' %}
+    {% if genericquestion.media_type == 'i' %}
     <p><img src="{{genericquestion.media_url}}" alt="Question Image" style="width:75%;"></p>
-    {% elif genericquestion.type == 'v' %}
+    {% elif genericquestion.media_type == 'v' %}
     <div style="width:100%;height:0px;position:relative;padding-bottom:56.250%;"><iframe src="{{genericquestion.media_url}}" frameborder="0" width="100%" height="100%" allowfullscreen style="width:100%;height:100%;position:absolute;left:0px;top:0px;overflow:hidden;"></iframe></div>
-    {% elif genericquestion.type == 'a' %}
+    {% elif genericquestion.media_type == 'a' %}
     <div id="audio">
       <audio controls>
       <source id="audio-source" src="{{genericquestion.media_url}}" type="audio/mpeg">
@@ -33,8 +33,16 @@
         <li>{{option}}</li>
       {% endfor %}
       </ul>
-    <br>
+    {% elif genericquestion.detail.stages %}
+      <ul style="list-style-type:none; padding-left:0; margin-top:5px">
+      {% for stage in genericquestion.detail.stages.all %}
+        {% if stage.text %}
+        <li>{{stage.text}}</li>
+        {% endif %}
+      {% endfor %}
+      </ul>
     {% endif %}
+    <br>
     <p>Correct answer: {{genericquestion.answer}}<br>
     <input id="show-correct" type="button" class="btn btn-success" onclick="showCorrectAnswer(event)" value="Show Correct Answer">
     </p>
@@ -56,8 +64,9 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 <form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
   <strong>{{user}}</strong> - <span id="{{user}}">{{response.get_response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
   <input type="hidden" name="responseID" value="{{response.id}}"/>
+  <input type="hidden" name="max_points" value="{{response.get_max_points}}"/>
   <input name="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
-  <label><input type="radio" name="mark" class="correct">Correct</label> &emsp;
+  <label><input type="radio" name="mark" class="correct">Correct <small>(<span name="max_points_display">{{response.get_max_points}}</span> pts)</small></label> &emsp;
   <label><input type="radio" name="mark" class="incorrect">Incorrect</label> &emsp;
   <label><input type="radio" name="mark" class="manual">
       Manual Points: <input type="number" name="points" step="0.01" min="0" max="10" onclick="tickManual(event);">
@@ -133,6 +142,18 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
         var answer = data.answer;
         if(answer.username && answer.questionID == questionID) {
           document.getElementById(answer.username).innerHTML = answer.answer;
+          if(answer.maxPoints) {
+            var form = document.getElementById(answer.username).parentElement;
+            form.querySelector('input[name="max_points"]').value = answer.maxPoints;
+            form.querySelector('span[name="max_points_display"]').innerHTML = answer.maxPoints;
+          }
+        }
+      }
+      else if (command === 'updateMaxPoints') {
+        if(data.maxPoints) {
+          var form = document.getElementById(data.responseID);
+          form.querySelector('input[name="max_points"]').value = data.maxPoints;
+          form.querySelector('span[name="max_points_display"]').innerHTML = data.maxPoints;
         }
       }
       else if (command === 'markedAnswer') {
@@ -180,11 +201,12 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     function markAnswer(event) {
       var form = event.toElement.parentElement;
       var responseID = form.querySelector('input[name="responseID"]').value;
+      var max_points = form.querySelector('input[name="max_points"]').value;
       var points = 0;
       var error = form.querySelector('span[name="error"]').innerHTML;
       if(form.querySelector('.correct').checked) {
         marking = 'c';
-        points = 1;
+        points = max_points;
       }
       else if(form.querySelector('.incorrect').checked) {
         marking = 'i';

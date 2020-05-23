@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 
 # Register your models here.
-from .models import GenericResponse, TextResponse, GenericQuestion, TextQuestion, MultipleChoiceQuestion, MultipleChoiceOption, Round, User, Game, UserScore, Quiz
+from .models import *
 
 admin.site.register(GenericQuestion)
 admin.site.register(GenericResponse)
@@ -35,6 +35,19 @@ class MultipleChoiceQuestionAdmin(admin.ModelAdmin):
         GenericQuestionInline,
         MultipleChoiceOptionInline,
     ]
+
+class ProgressiveStageInline(admin.TabularInline):
+    model = ProgressiveStage
+    min_num = 2
+    extra = 2
+
+@admin.register(ProgressiveQuestion)
+class ProgressiveQuestionAdmin(admin.ModelAdmin):
+    inlines = [
+        GenericQuestionInline,
+        ProgressiveStageInline
+    ]
+    readonly_fields = ["step"]
 
 @admin.register(TextResponse)
 class TextResponseAdmin(admin.ModelAdmin):

@@ -49,6 +49,8 @@ No current game
       var currentScreen = document.getElementById("current-screen");
       var onRoundStart = false;
       var currentQuestionMultipleChoice = false;
+      var currentQuestionProgressive = false;
+      var currentStage = 0;
       const userID = JSON.parse(document.getElementById('userID').textContent);
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
@@ -91,20 +93,21 @@ No current game
       };
 
       function loadQuestion(data) {
+        currentStage = 0;
         question = data.question;
         console.log(question);
         document.getElementById('question-id').value = question.id;
         document.getElementById('questionNumber').innerHTML = "Question " + question.number;
         document.getElementById('question').innerHTML = question.question;
-        if(question.type == 'i') {
+        if(question.media_type == 'i') {
           document.getElementById('image').style.display="block";
           document.getElementById('questionImg').src = question.media_url;
         }
-        else if(question.type == 'v') {
+        else if(question.media_type == 'v') {
           document.getElementById('video').style.display="block";
           document.getElementById('videoFrame').src = question.media_url;
         }
-        else if(question.type == 'a') {
+        else if(question.media_type == 'a') {
           document.getElementById('audio').style.display="block";
           document.getElementById('audio-player').setAttribute('src', question.media_url);
         }
@@ -126,6 +129,33 @@ No current game
             }
           }
           else {
+            if(question.progressive_info) {
+              document.getElementById('stages-body').innerHTML = "";
+              currentStage = data.currentStage;
+              progressive_info = question.progressive_info;
+              var stages = JSON.parse(progressive_info["stages"]);
+              var step = parseFloat(progressive_info["step"]);
+              var minPoints = parseFloat(progressive_info["min_points"]);
+              var maxPoints = parseFloat(progressive_info["max_points"]);
+              var currentMaxPoints = maxPoints - (step*currentStage);
+              initialAppendToStagesTable(stages);
+              displayNewMaxPoints(currentMaxPoints);
+              document.getElementById('total-hints-counter').innerHTML = stages.length;
+              document.getElementById('current-hints-counter').innerHTML = currentStage+1;
+              document.getElementById('next-hint-text').innerHTML = "Next Hint (-" + progressive_info["step"] + " points)"
+
+              document.getElementById('next-hint-paragraph').style.display = "block";
+              document.getElementById('hints-caption').style.display = "table-caption";
+              if(currentStage == (stages.length - 1)) {
+                document.getElementById('next-hint').style.display = "none";
+              }
+              else {
+                document.getElementById('next-hint').style.display = "inline-block";
+              }
+              document.getElementById('next-hint').addEventListener('click', function() {
+                showNextHint(stages, step, minPoints);
+              }, false);
+            }
             document.getElementById('id_response').value = "";
             autosize(document.querySelectorAll('textarea'));
             $("#id_response").keypress(function (e) {
@@ -145,6 +175,15 @@ No current game
           }
         }
         else {
+          if(question.progressive_info) {
+            document.getElementById('stages-body').innerHTML = "";
+            progressive_info = question.progressive_info;
+            var stages = JSON.parse(progressive_info["stages"]);
+            currentStage = stages.length-1;
+            initialAppendToStagesTable(stages);
+            document.getElementById('next-hint-paragraph').style.display = "none";
+            document.getElementById('hints-caption').style.display = "none";
+          }
           form.style.display = "none";
           document.getElementById("answer-display").innerHTML = "";
           answers.style.display = "block";
@@ -216,13 +255,19 @@ No current game
         else if (command === 'question') {
           question = data.question
           multiple_choice = !(question.multiple_choice_form == null)
+          progressive = !(question.progressive_info == null)
           if(question.id) {
-            if(document.getElementById('question-id') && question.multiple_choice == currentQuestionMultipleChoice) {
+            if(document.getElementById('question-id') && multiple_choice == currentQuestionMultipleChoice && progressive == currentQuestionProgressive) {
               loadQuestion(data);
             }
             else {
               if(multiple_choice) {
                 $("#current-screen").load("{% static 'quiz/showMultipleChoiceQuestion.html' %}", function() {
+                  loadQuestion(data);
+                });
+              }
+              else if(progressive) {
+                $("#current-screen").load("{% static 'quiz/showProgressiveQuestion.html' %}", function() {
                   loadQuestion(data);
                 });
               }
@@ -232,6 +277,7 @@ No current game
                 });
               }
               currentQuestionMultipleChoice = multiple_choice;
+              currentQuestionProgressive = progressive;
             }
           }
         }
@@ -296,7 +342,12 @@ No current game
       function handleForm(event) {
         var answer = document.getElementById('id_response').value;
         var questionID = document.getElementById('question-id').value;
-        chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer });
+        var maxPoints = null;
+        var maxPointsElem = document.getElementById('current-max-points');
+        if(maxPointsElem) {
+          maxPoints = parseFloat(maxPointsElem.innerHTML);
+        }
+        chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: maxPoints });
       };
 
       function handleMultipleChoiceForm(event) {
@@ -310,6 +361,29 @@ No current game
         response = document.getElementById('id_response');
         response.value = document.getElementById('current-answer').innerHTML;
         autosize.update(response);
+      };
+
+      function showNextHint(stages, step, minPoints) {
+        var newMax = parseFloat(document.getElementById('current-max-points').innerHTML) - step;
+        if(Math.round(newMax) < minPoints) {
+          console.log("Error, too low");
+          return false;
+        }
+        currentStage++;
+        console.log(currentStage);
+        if(currentStage >= stages.length) {
+          console.log("Gone past end of stage array.");
+          return false;
+        }
+        var questionID = document.getElementById('question-id').value;
+        chatSocket.sendMessage({ command: 'increment_user_progressive_stage', questionID: questionID, gameID: roomCode, userID: userID, currentStage: currentStage, maxPoints: newMax });
+
+        displayNewMaxPoints(newMax);
+        if(currentStage == (stages.length - 1)) {
+          document.getElementById('next-hint').style.display = "none";
+        }
+        appendToStagesTable(stages);
+        document.getElementById('current-hints-counter').innerHTML = currentStage+1;
       };
 
       function fadeIn(element) {
@@ -336,7 +410,7 @@ No current game
           ease: "elastic",
           stagger: -1,
         });
-      }
+      };
 
       function quizSwitchPodium() {
         $('#carousel').on('slide.bs.carousel', function (event) {
@@ -344,7 +418,7 @@ No current game
           $('#carousel').unbind('slide.bs.carousel');
         });
         $('#carousel').carousel(1);
-      }
+      };
 
       function quizPodiumAnimation() {
         var tl = gsap.timeline({onComplete: endQuizAnimation});
@@ -366,12 +440,12 @@ No current game
             ease: "elastic",
           });
         }
-      }
+      };
 
       function endQuizAnimation() {
         document.getElementById("carousel-left").style.display="flex";
         document.getElementById("carousel-right").style.display="flex";
-      }
+      };
 
       function scoreToString(rank, score) {
         str = "";
@@ -396,6 +470,39 @@ No current game
             var cell = row.insertCell(-1);
             cell.innerHTML = scoreToString(i, scores[i]);
         }
+      };
+
+      function initialAppendToStagesTable(stages) {
+        for(var i = 0; i <= currentStage; i++) {
+          table = document.getElementById('stages-body');
+          var row = table.insertRow(-1);
+          var cell1 = row.insertCell(-1);
+          var cell2 = row.insertCell(-1);
+          cell1.innerHTML = i+1;
+          cell1.className = "fit";
+          cell2.innerHTML = stages[i]["fields"]["text"];
+        }
+      };
+
+      function appendToStagesTable(stages) {
+        table = document.getElementById('stages-body');
+        var row = table.insertRow(-1);
+        var cell1 = row.insertCell(-1);
+        var cell2 = row.insertCell(-1);
+        cell1.innerHTML = currentStage+1;
+        cell1.className = "fit";
+        cell2.innerHTML = stages[currentStage]["fields"]["text"];
+      };
+
+      function displayNewMaxPoints(newMax) {
+        var newMaxFormatted;
+        if(newMax % 1 == 0) {
+          newMaxFormatted = +newMax.toFixed(2);
+        }
+        else {
+          newMaxFormatted = newMax.toFixed(2);
+        }
+        document.getElementById('current-max-points').innerHTML = newMaxFormatted;
       };
 });
 </script>

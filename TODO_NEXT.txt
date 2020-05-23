@@ -1,9 +1,16 @@
-- LEFTOFF: Done Quiz End screen animation.
-- TODO: Upload to heroku.
+- LEFTOFF: Mostly finished progressive round.
+- TODO: Update max points on leader screen when answer submitted.
+
+PRIORITY:
+1. Progressive Round
+  - Get media displaying.
+2. Can't see round images on mobile.
+3. maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
+4. Add import/export.
 
 ROUND PRIORITY LIST:
-- Audio (NEED FIND AUDIO HOST. MIXDROP GIVES ADS) /
 - Progressive Scoring Round (E.g. 1 second of song, 5 seconds, 10 seconds, save at what point someone answers)
+JSON Serialize array maybe
 - Outsourced Round (Use Iframe to include another website. In database for the question, store url,
   and search string. Have submit button, when they click it it will search in the iframe for the string,
   in order to get their answer. MIGHT NOT BE POSSIBLE, CROSS-SITE JAVASCRIPT IS NOT POSSIBLE.
@@ -14,12 +21,11 @@ ROUND PRIORITY LIST:
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
 
-- Don't set display on screen until the end, when everything loaded /
+- Automatic marking for multiple choice
 
-- Have edit answer button that puts current answer in text box. /
-- Maybe change text box to text area. Grow with answer if possible. /
-- Change username button. /
 - Have hints, have possibility to send message to one player from leader screen.
+
+- Add in import/export.
 
 URGENT ISSUES:
 
@@ -36,11 +42,6 @@ NON URGENT ISSUES:
 - On game starting screen it shows game loading before the screen
 - Change colour of bonus, it clashes with indicating who you are.
 
-
-- / TIMER PROBLEM: The problem is with system clocks being different, maybe pull exact time somehow. Maybe send current time on server and calculate offset.)
-- / Maybe use offset in timer, in systemdate. take away the offset from the timerlength so that it shows correct length? Idk
-
-- On Round End/Quiz End screens, display scores of users one by one. Put top 3 on podium with medals.
 
 - Make logo.
 
