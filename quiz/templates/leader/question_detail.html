@@ -86,10 +86,6 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 {{ request.session.currentGameCode }}
 {% endblock %}
 
-{% block playerList %}
-<p id="player-list"></p>
-{% endblock %}
-
 {% block scripts %}
 {{ request.session.currentGameCode|json_script:"currentGameCode" }}
 {{ genericquestion.id|json_script:"questionID" }}

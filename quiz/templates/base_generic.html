@@ -12,17 +12,27 @@
   {% block style %}
   {% endblock %}
   <style>
-  @media (max-width: 575px) {
-    #content{
-      height:100vh;
-    }
+  .card-header .fa-chevron-down {
+  transition: .3s transform ease-in-out;
   }
+  .card-header .collapsed .fa-chevron-down {
+  transform: rotate(90deg);
+  }
+
+  @media screen and (max-width: 575.98px) {
+    .three { order: 2; }
+    .two { order: 3; }
+    .one { order: 1; }
+  }
+}
+
+
 </style>
 </head>
 <body>
-  <div class="container-fluid h-100">
+  <div class="container-fluid h-100" id="container">
     <div id="page-row" class="row h-100">
-      <div class="col-sm-2 px-sm-2 p-0">
+      <div class="one col-2 px-sm-2 p-0">
       {% block sidebar %}
       <ul class="nav nav-pills">
         <li class="nav-item">
@@ -31,7 +41,7 @@
       </ul>
      {% endblock %}
       </div>
-      <div id="content" class="col-sm-8 text-center my-auto">
+      <div id="content" class="two col-sm-8 text-center my-sm-auto">
         <noscript>You need to enable JavaScript to properly use this website.</noscript>
         {% block content %}{% endblock %}
         {% if messages %}
@@ -47,30 +57,45 @@
         </ul>
         {% endif %}
       </div>
-      {% block playerDisplay %}
-      <p class="d-block d-sm-none" style="position: absolute;">&nbsp<br></p>
-      <div class="col-sm-2 p-sm-1" >
-        <div class="card bg-default w-100 m-0">
-          <h6 class="card-header">
-            <strong>Room Code: {% block roomCode %}{% endblock %}</strong>
-          </h6>
-          <div class="card-body">
-            {% block playerList %}
-            {% endblock %}
-            <!-- <div class="card-footer">
-              Answered 1/10
-            </div> -->
-          </div>
-      </div>
+      <div class="three col-10 col-sm-2 p-sm-1 pl-0 pt-3">
+        {% block playerDisplay %}
+          <div class="card bg-default w-100 m-0">
+            <h6 class="card-header">
+              <a class="d-block" style="color: #EBEBEB; text-decoration:none" data-toggle="collapse" href="#collapse-collapsed" aria-expanded="true" aria-controls="collapse-collapsed" id="heading-collapsed">
+                <strong>Room Code: {% block roomCode %}{% endblock %}</strong>
+                <span id="not-connected"></span>
+                <i class="fa fa-chevron-down float-right"></i>
+              </a>
+            </h6>
+            <div id="collapse-collapsed" class="collapse show" aria-labelledby="heading-collapsed">
+              <div class="card-body">
+                <p id="player-list"></p>
+                <!-- <div class="card-footer">
+                  Answered 1/10
+                </div> -->
+              </div>
+            </div>
+        </div>
+        {% endblock playerDisplay %}
     </div>
-    {% endblock playerDisplay %}
   </div>
 </div>
 <script src="https://kit.fontawesome.com/06fe17e0d9.js" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"></script>
+<script>
+    $(document).ready(function(){
+      console.log("ready");
+        if ($(window).width() < 576) {
+          console.log("less");
+            $("#collapse-collapsed").removeClass("show");
+            $("#heading-collapsed").addClass("collapsed");
+        }
+    });
+</script>
+
 {% block scripts %}
 {% endblock %}
 </body>

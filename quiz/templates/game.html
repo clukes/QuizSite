@@ -30,10 +30,6 @@ No current game
 {{ request.session.currentGameCode }}
 {% endblock %}
 
-{% block playerList %}
-<p id="player-list"></p>
-{% endblock %}
-
 {% block scripts %}
 {% if request.session.currentGameCode is None %}
 {% else %}
@@ -88,6 +84,7 @@ No current game
       chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
         document.getElementById("player-list").innerHTML = "Not connected";
+        document.getElementById("not-connected").innerHTML = "(Not connected)";
       };
 
       function loadQuestion(data) {
