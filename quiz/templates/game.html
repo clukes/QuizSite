@@ -133,7 +133,7 @@ No current game
               var minPoints = parseFloat(progressive_info["min_points"]);
               var maxPoints = parseFloat(progressive_info["max_points"]);
               var currentMaxPoints = maxPoints - (step*currentStage);
-              initialAppendToStagesTable(stages);
+              initialAppendToStagesTable(stages, question.media_type);
               displayNewMaxPoints(currentMaxPoints);
               document.getElementById('total-hints-counter').innerHTML = stages.length;
               document.getElementById('current-hints-counter').innerHTML = currentStage+1;
@@ -148,7 +148,7 @@ No current game
                 document.getElementById('next-hint').style.display = "inline-block";
               }
               document.getElementById('next-hint').addEventListener('click', function() {
-                showNextHint(stages, step, minPoints);
+                showNextHint(stages, step, minPoints, question.media_type);
               }, false);
             }
             document.getElementById('id_response').value = "";
@@ -175,7 +175,7 @@ No current game
             progressive_info = question.progressive_info;
             var stages = JSON.parse(progressive_info["stages"]);
             currentStage = stages.length-1;
-            initialAppendToStagesTable(stages);
+            initialAppendToStagesTable(stages, question.media_type);
             document.getElementById('next-hint-paragraph').style.display = "none";
             document.getElementById('hints-caption').style.display = "none";
           }
@@ -351,7 +351,7 @@ No current game
         autosize.update(response);
       };
 
-      function showNextHint(stages, step, minPoints) {
+      function showNextHint(stages, step, minPoints, mediaType) {
         var newMax = parseFloat(document.getElementById('current-max-points').innerHTML) - step;
         if(Math.round(newMax) < minPoints) {
           console.log("Error, too low");
@@ -370,7 +370,7 @@ No current game
         if(currentStage == (stages.length - 1)) {
           document.getElementById('next-hint').style.display = "none";
         }
-        appendToStagesTable(stages);
+        appendToStagesTable(stages, mediaType);
         document.getElementById('current-hints-counter').innerHTML = currentStage+1;
       };
 
@@ -460,27 +460,45 @@ No current game
         }
       };
 
-      function initialAppendToStagesTable(stages) {
-        for(var i = 0; i <= currentStage; i++) {
+      function initialAppendToStagesTable(stages, mediaType) {
+        for(var i = 0; i < currentStage; i++) {
+          showStage(i, stages, mediaType, false);
+        }
+        showStage(currentStage, stages, mediaType, true);
+      };
+
+      function appendToStagesTable(stages, mediaType) {
+        showStage(currentStage, stages, mediaType, true);
+      };
+
+      function showStage(stageNum, stages, mediaType, showMedia=false) {
+        console.log("test");
+        if(stages[stageNum]["fields"]["text"]) {
           table = document.getElementById('stages-body');
           var row = table.insertRow(-1);
           var cell1 = row.insertCell(-1);
           var cell2 = row.insertCell(-1);
-          cell1.innerHTML = i+1;
+          cell1.innerHTML = stageNum+1;
           cell1.className = "fit";
-          cell2.innerHTML = stages[i]["fields"]["text"];
+          cell2.innerHTML = stages[stageNum]["fields"]["text"];
         }
-      };
-
-      function appendToStagesTable(stages) {
-        table = document.getElementById('stages-body');
-        var row = table.insertRow(-1);
-        var cell1 = row.insertCell(-1);
-        var cell2 = row.insertCell(-1);
-        cell1.innerHTML = currentStage+1;
-        cell1.className = "fit";
-        cell2.innerHTML = stages[currentStage]["fields"]["text"];
-      };
+        if(showMedia) {
+          console.log("show");
+          if(mediaType == 'i') {
+            document.getElementById('image').style.display="block";
+            document.getElementById('questionImg').src = stages[stageNum]["fields"]["media_url"];
+            console.log(stages[stageNum]["fields"]["media_url"]);
+          }
+          else if(mediaType == 'v') {
+            document.getElementById('video').style.display="block";
+            document.getElementById('videoFrame').src = stages[stageNum]["fields"]["media_url"];
+          }
+          else if(mediaType == 'a') {
+            document.getElementById('audio').style.display="block";
+            document.getElementById('audio-player').setAttribute('src', stages[stageNum]["fields"]["media_url"]);
+          }
+        }
+      }
 
       function displayNewMaxPoints(newMax) {
         var newMaxFormatted;

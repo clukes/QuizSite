@@ -1,7 +1,7 @@
 - LEFTOFF: Mostly finished progressive round.
 - TODO: Update max points on leader screen when answer submitted.
 
-URGENT: ON MOBILE WHEN TYPING THE PLAYER LIST COVERS ANSWER. ANSWERS GO UNDER PLAYER LIST.
+Have a tiebreaker question.
 
 PRIORITY:
 1. Progressive Round
