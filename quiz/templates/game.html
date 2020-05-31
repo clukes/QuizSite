@@ -303,7 +303,7 @@ No current game
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
             document.getElementById('correct-answer-display').style.display="block";
-            document.getElementById('correct-answer').innerHTML = data.answer;
+            document.getElementById('correct-answer').innerHTML = htmlDecode(data.answer);
           }
         }
         else if (command === 'timer') {
@@ -510,6 +510,11 @@ No current game
         }
         document.getElementById('current-max-points').innerHTML = newMaxFormatted;
       };
+
+      function htmlDecode(value) {
+        return $("<textarea/>").html(value).text();
+      };
+
 });
 </script>
 
