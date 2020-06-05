@@ -44,6 +44,26 @@
     {% endif %}
     <br>
     <p>Correct answer: {{genericquestion.answer}}<br>
+    {% if genericquestion.question_type == 'g' %}
+    <script type="text/javascript">
+      var comparisonItems = [];
+      var exploreQuery = "q=";
+
+      {% for user, response in answers.items %}
+        {% if response.get_response and response.get_response.strip %}
+          var responseText = "{{response.get_response}}";
+          comparisonItems.push({"keyword":""+responseText,"geo":"GB","time":"today 12-m"});
+          exploreQuery = exploreQuery + responseText;
+        {% endif %}
+      {% endfor %}
+      trends.embed.renderExploreWidget(
+        "TIMESERIES",
+        {"comparisonItem":comparisonItems,"category":0,"property":""},
+        {"exploreQuery":exploreQuery+"&date=today 12-m,today 12-m","guestPath":"https://trends.google.com:443/trends/embed/"}
+      );
+    </script>
+    <br>
+    {% endif %}
     <input id="show-correct" type="button" class="btn btn-success" onclick="showCorrectAnswer(event)" value="Show Correct Answer">
     </p>
   </div>
@@ -56,8 +76,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 <p id="timerCountdown" style="display:none;">Time remaining: <span class="minutes"></span>:<span class="seconds"></span></p>
 <br>
 <input id="mark-question" type="button" class="btn btn-success" value="Mark Question">
-<br>
-<br>
+<br><br>
 <h2>Answers</h2>
 <p style="text-align:left !important;">
 {% for user, response in answers.items %}
@@ -230,7 +249,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     };
 
     function showCorrectAnswer(event) {
-      chatSocket.sendMessage({ command: 'show_correct_answer', questionID: questionID, answer: "{{ genericquestion.answer }}" });
+      chatSocket.sendMessage({ command: 'show_correct_answer', questionID: questionID, gameID: roomCode, answer: "{{ genericquestion.answer }}" });
     };
 
     function setTimer(event) {

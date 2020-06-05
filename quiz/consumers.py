@@ -288,10 +288,26 @@ class GameConsumer(WebsocketConsumer):
 
     def show_correct_answer(self, data):
         questionID = data['questionID']
+        gameID = data['gameID']
         answer = data['answer']
+        comparisonItems = None
+        questionType = 't'
+        try:
+            question = GenericQuestion.objects.get(id=questionID)
+            questionType = question.question_type
+            if questionType == 'g':
+                question = GenericQuestion.objects.get(id=questionID)
+                game = Game.objects.get(id=gameID)
+                users = game.user_set.all()
+                answers = question.get_all_users_responses(users, game)
+                comparisonItems = self.answers_to_comparisonItems(answers)
+        except (GenericQuestion.DoesNotExist, Game.DoesNotExist, TextResponse.DoesNotExist) as e:
+            pass
         content = {
             'command': 'correctAnswer',
             'questionID': questionID,
+            'questionType': questionType,
+            'comparisonItems': comparisonItems,
             'answer': answer
         }
         self.send_message_to_group(content)
@@ -328,7 +344,7 @@ class GameConsumer(WebsocketConsumer):
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.question_type in ['t', 'm', 'p']):
+            if(question.question_type in ['t', 'm', 'p', 'g']):
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)
@@ -519,6 +535,7 @@ class GameConsumer(WebsocketConsumer):
             'id': question.id,
             'number': question.number,
             'question': question.question,
+            'question_type': question.question_type,
             'media_type': question.media_type,
             'media_url': question.media_url,
             'multiple_choice_form': multiple_choice_form,
@@ -586,6 +603,16 @@ class GameConsumer(WebsocketConsumer):
     def answers_to_html(self, answers):
         html = ''.join(map(self.answer_to_html, answers))
         return html
+
+    def answer_to_comparisonItem(self, response):
+        answer = response.get_response()
+        if(answer and answer.strip()):
+            return f'{{"keyword":"{answer}","geo":"GB","time":"today 12-m"}}'
+        return ''
+
+    def answers_to_comparisonItems(self, answers):
+        comparisonItems = [{"keyword": response.get_response(),"geo":"GB","time":"today 12-m"} for response in answers]
+        return comparisonItems
 
     def score_to_html(self, ranking, userScore):
         username = userScore.user.username

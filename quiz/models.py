@@ -20,7 +20,8 @@ MEDIA_TYPES = (
 QUESTION_TYPES = (
     ('t', 'Text Question'),
     ('m', 'Multiple Choice Question'),
-    ('p', 'Progressive Question')
+    ('p', 'Progressive Question'),
+    ('g', 'Google Trends Question')
 )
 
 RESPONSE_TYPES = (
@@ -67,8 +68,9 @@ class GenericQuestion(models.Model):
 
     def save(self, *args, **kwargs):
         # change question type based on question detail
-        question_types = {key.casefold(): value for (value, key) in QUESTION_TYPES}
-        self.question_type = question_types[str(self.content_type).casefold()]
+        if(not (str(self.content_type) == "text question" and self.question_type == "g")):
+            question_types = {key.casefold(): value for (value, key) in QUESTION_TYPES}
+            self.question_type = question_types[str(self.content_type).casefold()]
         super(GenericQuestion, self).save(*args, **kwargs)
 
     def get_absolute_url(self):

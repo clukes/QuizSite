@@ -85,3 +85,5 @@ NON URGENT ISSUES:
 
 - Have a website logo/image, put in the tab bar.
 - Make animated logo, maybe use svgator.
+
+- Unique username doesn't ignore case. So can have players with both con and Con.

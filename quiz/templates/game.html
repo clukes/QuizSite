@@ -159,8 +159,16 @@ No current game
                 handleForm();
               }
             });
+
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
-            document.getElementById("set-answer").onclick = handleForm;
+            if(question.question_type == "g") {
+              document.getElementById("set-answer").addEventListener('click', function() {
+                handleGoogleTrendsForm(question.question);
+              }, false);
+            }
+            else {
+              document.getElementById("set-answer").onclick = handleForm;
+            }
             document.getElementById("edit-answer").onclick = editAnswer;
           }
           answers.style.display = "none";
@@ -249,16 +257,19 @@ No current game
         }
         else if (command === 'question') {
           question = data.question
-          multiple_choice = !(question.multiple_choice_form == null)
-          progressive = !(question.progressive_info == null)
           if(question.id) {
-              if(multiple_choice) {
+              if(question.question_type == 'm') {
                 $("#current-screen").load("{% static 'quiz/showMultipleChoiceQuestion.html' %}", function() {
                   loadQuestion(data);
                 });
               }
-              else if(progressive) {
+              else if(question.question_type == 'p') {
                 $("#current-screen").load("{% static 'quiz/showProgressiveQuestion.html' %}", function() {
+                  loadQuestion(data);
+                });
+              }
+              else if(question.question_type == 'g') {
+                $("#current-screen").load("{% static 'quiz/showGoogleTrendsQuestion.html' %}", function() {
                   loadQuestion(data);
                 });
               }
@@ -303,7 +314,13 @@ No current game
           questionID = document.getElementById('question-id').value;
           if(questionID == data.questionID) {
             document.getElementById('correct-answer-display').style.display="block";
-            document.getElementById('correct-answer').innerHTML = htmlDecode(data.answer);
+            if(data.questionType == "g") {
+              var divElem = document.getElementById('correct-answer-display');
+              displayGoogleTrends(divElem, data.comparisonItems);
+            }
+            else {
+              document.getElementById('correct-answer').innerHTML = htmlDecode(data.answer);
+            }
           }
         }
         else if (command === 'timer') {
@@ -337,6 +354,28 @@ No current game
         }
         chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: maxPoints });
       };
+
+      function handleGoogleTrendsForm(question) {
+        var answer = document.getElementById('id_response').value;
+        answer = $.trim(answer.toUpperCase());
+        var words = answer.split(" ", 3);
+        console.log(words);
+        if(words.length !== 2) {
+          console.log("too short");
+          $('#id_response').removeClass('is-valid').addClass('is-invalid');
+          document.getElementById('invalid-feedback').innerHTML = "Must enter 2 words.";
+        }
+        else if(!words.includes($.trim(question.toUpperCase()))) {
+          console.log("not include");
+          $('#id_response').removeClass('is-valid').addClass('is-invalid');
+          document.getElementById('invalid-feedback').innerHTML = "Must include \"" + question + "\" in your answer.";
+        }
+        else {
+          $('#id_response').removeClass('is-invalid').addClass('is-valid');
+          document.getElementById('invalid-feedback').innerHTML = "";
+          handleForm();
+        }
+      }
 
       function handleMultipleChoiceForm(event) {
         var answer = $("input[name=response]:checked").parent().text().trimLeft();
@@ -472,7 +511,6 @@ No current game
       };
 
       function showStage(stageNum, stages, mediaType, showMedia=false) {
-        console.log("test");
         if(stages[stageNum]["fields"]["text"]) {
           table = document.getElementById('stages-body');
           var row = table.insertRow(-1);
@@ -515,6 +553,11 @@ No current game
         return $("<textarea/>").html(value).text();
       };
 
+      function displayGoogleTrends(divElem, comparisonItems) {
+        console.log(comparisonItems);
+        divElem.innerHTML = "";
+        trends.embed.renderExploreWidgetTo(divElem, "TIMESERIES", {"comparisonItem":comparisonItems,"category":0,"property":""}, {"exploreQuery":"geo=GB&date=today 12-m,today 12-m","guestPath":"https://trends.google.com:443/trends/embed/"});
+      };
 });
 </script>
 
