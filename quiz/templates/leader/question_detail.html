@@ -51,11 +51,12 @@
 
       {% for user, response in answers.items %}
         {% if response.get_response and response.get_response.strip %}
-          var responseText = "{{response.get_response}}";
+          var responseText = "{{response.get_response|escapejs}}";
           comparisonItems.push({"keyword":""+responseText,"geo":"GB","time":"today 12-m"});
           exploreQuery = exploreQuery + responseText;
         {% endif %}
       {% endfor %}
+      console.log(comparisonItems);
       trends.embed.renderExploreWidget(
         "TIMESERIES",
         {"comparisonItem":comparisonItems,"category":0,"property":""},

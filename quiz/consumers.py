@@ -604,14 +604,8 @@ class GameConsumer(WebsocketConsumer):
         html = ''.join(map(self.answer_to_html, answers))
         return html
 
-    def answer_to_comparisonItem(self, response):
-        answer = response.get_response()
-        if(answer and answer.strip()):
-            return f'{{"keyword":"{answer}","geo":"GB","time":"today 12-m"}}'
-        return ''
-
     def answers_to_comparisonItems(self, answers):
-        comparisonItems = [{"keyword": response.get_response(),"geo":"GB","time":"today 12-m"} for response in answers]
+        comparisonItems = [{"keyword": response.get_response(),"geo":"GB","time":"today 12-m"} for response in answers if response.get_response() is not None]
         return comparisonItems
 
     def score_to_html(self, ranking, userScore):

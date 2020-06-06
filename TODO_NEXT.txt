@@ -1,5 +1,12 @@
-- LEFTOFF: Mostly finished progressive round.
-- TODO: Update max points on leader screen when answer submitted.
+- LEFTOFF:
+- TODO:
+
+- On question 2 in who is this round, first picture is too big vertically. /
+- On google trends round, get rid of fractions. /
+- On google trends round, corona doesn't work.? Maybe that's fixed?
+- On google trends round, if there's a null it doesn't work. /
+- On google trends round, mcdonald's doesn't work on leader screen. /
+- Google trends round, first place gets 1 point, 2nd gets 0.75, 3rd gets 0.5, 4th gets 0.25. But if 0 searches then get 0.
 
 Have a tiebreaker question.
 
