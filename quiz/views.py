@@ -39,6 +39,8 @@ def index(request):
                 except IntegrityError as e:
                     messages.add_message(request, messages.ERROR, "Username not unique.")
                 return HttpResponseRedirect(reverse('index'))
+            else:
+                return render(request, 'index.html', context={'username_form': username_form})
         elif 'change-name' in request.POST:
             request.session['changeUsername'] = True
             return HttpResponseRedirect(reverse('index'))

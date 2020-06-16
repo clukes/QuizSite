@@ -21,7 +21,8 @@ QUESTION_TYPES = (
     ('t', 'Text Question'),
     ('m', 'Multiple Choice Question'),
     ('p', 'Progressive Question'),
-    ('g', 'Google Trends Question')
+    ('g', 'Google Trends Question'),
+    ('o', 'Ordering Question')
 )
 
 RESPONSE_TYPES = (
@@ -33,7 +34,7 @@ class GenericQuestion(models.Model):
     number = models.IntegerField()
     round = models.ForeignKey('Round', on_delete=models.SET_NULL, null=True)
     question = models.CharField(max_length=500)
-    answer = models.CharField(max_length=500)
+    answer = models.CharField(max_length=1000, default="", blank=True)
     media_url = models.URLField(max_length=1000, null=True, blank=True)
     media_type = models.CharField(
         max_length=1,
@@ -182,6 +183,31 @@ def update_step(sender, instance, created=True, **kwargs):
         instance.question.step = instance.question.calculate_step()
         instance.question.save()
 
+class OrderingQuestion(QuestionDetail):
+    max_points = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+
+    def save(self, *args, **kwargs):
+        # set answer when saved
+        super(OrderingQuestion, self).save(*args, **kwargs)
+        answer = ', '.join([str(i) for i in self.elements.order_by('correct_ordering')])
+        print(answer)
+        generic = GenericQuestion.objects.get(id=self.generic_question.id)
+        generic.answer = answer
+        generic.save()
+
+class OrderingElement(models.Model):
+    question = models.ForeignKey('OrderingQuestion', related_name='elements', on_delete=models.CASCADE, null=False)
+    text = models.CharField(max_length=300)
+    correct_ordering = models.PositiveIntegerField()
+    display_ordering = models.PositiveIntegerField()
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.text
+
+    class Meta:
+        unique_together = (('question', 'display_ordering'), ('question', 'correct_ordering'))
+
 class GenericResponse(models.Model):
     """Model representing a generic response."""
     question = models.ForeignKey('GenericQuestion', on_delete=models.CASCADE, null=False)
@@ -270,7 +296,7 @@ class Round(models.Model):
     quiz = models.ForeignKey('Quiz', on_delete=models.SET_NULL, null=True)
     number = models.IntegerField()
     title = models.CharField(max_length=200)
-    description = models.CharField(max_length=200, null=True, blank=True)
+    description = models.CharField(max_length=500, null=True, blank=True)
     background_image_url = models.URLField(max_length=300, null=True, blank=True)
 
     class Meta:

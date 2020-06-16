@@ -1,11 +1,19 @@
 from django import forms
 from quiz.models import MultipleChoiceQuestion, MultipleChoiceOption
+from django.core.validators import RegexValidator
+from django.utils.translation import gettext as _
+
+no_space_validator = RegexValidator(
+    r' ',
+    _('No spaces allowed'),
+    inverse_match=True,
+    code='invalid_username')
 
 class TextReponseForm(forms.Form):
     response = forms.CharField(max_length=300, help_text="Enter your answer.")
 
 class UsernameForm(forms.Form):
-    username = forms.CharField(max_length=300, help_text="Enter your username.")
+    username = forms.CharField(max_length=300, help_text="Enter your username.", validators=[no_space_validator])
 
 class JoinRoomForm(forms.Form):
     room_Code = forms.IntegerField(help_text="Enter the room code.")

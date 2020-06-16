@@ -371,6 +371,62 @@ class GameConsumer(WebsocketConsumer):
         except (User.DoesNotExist, GenericQuestion.DoesNotExist, TextResponse.DoesNotExist, Game.DoesNotExist) as e:
             pass
 
+    def set_ordering_answer(self, data):
+        try:
+            userID = data['userID']
+            questionID = data['questionID']
+            answer = data['answer']
+            gameID = data['gameID']
+            maxPoints = data['maxPoints']
+            game = Game.objects.get(id=gameID)
+            user = User.objects.get(id=userID)
+            question = GenericQuestion.objects.get(id=questionID)
+
+            if(question.question_type in ['o']):
+                maxPoints = question.detail.max_points
+                i = 0
+                correct = 0
+                points = 0
+
+                for element in answer:
+                    ordering_element = question.detail.elements.get(pk=answer[i])
+                    if(question.detail.elements.get(pk=answer[i]).correct_ordering == i+1):
+                        correct += 1
+                    i += 1
+
+                if(i > 0):
+                    points = (correct * float(maxPoints)) / i
+
+                textAnswer = ', '.join([str(question.detail.elements.get(pk=i)) for i in answer])
+                response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
+                if response.response_detail is None:
+                    text_response = TextResponse(response=textAnswer)
+                    text_response.save()
+                    response.add_response(text_response)
+                else:
+                    response_detail = response.response_detail
+                    response_detail.response = textAnswer
+                    response_detail.save()
+
+                response.marking="p"
+                response.points=points
+                response.save()
+
+                content = {
+                    'username': user.username,
+                    'answer': textAnswer,
+                    'questionID': question.id,
+                    'maxPoints': defaultfilters.floatformat(maxPoints, "-2"),
+                    'points': points
+                }
+                message = {
+                    'command': 'answer',
+                    'answer': content
+                }
+                self.send_message_to_group(message)
+        except (User.DoesNotExist, GenericQuestion.DoesNotExist, TextResponse.DoesNotExist, Game.DoesNotExist) as e:
+            pass
+
     def increment_user_progressive_stage(self, data):
         try:
             questionID = data['questionID']
@@ -523,6 +579,7 @@ class GameConsumer(WebsocketConsumer):
         image = None
         multiple_choice_form = None
         progressive_info = None
+        ordering_elements = None
         if question.question_type == 'm':
             multiple_choice_form = MultipleChoiceForm(instance = question.detail).as_p()
         if question.question_type == 'p':
@@ -531,6 +588,8 @@ class GameConsumer(WebsocketConsumer):
                                 'min_points': defaultfilters.floatformat(question.detail.min_points, "-2"),
                                 'step': defaultfilters.floatformat(question.detail.step, "-2"),
                                 'stages': progressive_stages}
+        if question.question_type == 'o':
+            ordering_elements = serializers.serialize("json", question.detail.elements.all().order_by('display_ordering'), fields=["text", "display_ordering"])
         return {
             'id': question.id,
             'number': question.number,
@@ -539,7 +598,8 @@ class GameConsumer(WebsocketConsumer):
             'media_type': question.media_type,
             'media_url': question.media_url,
             'multiple_choice_form': multiple_choice_form,
-            'progressive_info': progressive_info
+            'progressive_info': progressive_info,
+            'ordering_elements': ordering_elements
         }
 
     def construct_correct_icon(self, points):
@@ -632,6 +692,7 @@ class GameConsumer(WebsocketConsumer):
             'get_current_screen': get_current_screen,
             'change_question': change_question,
             'set_text_answer': set_text_answer,
+            'set_ordering_answer': set_ordering_answer,
             'increment_user_progressive_stage': increment_user_progressive_stage,
             'mark_question': mark_question,
             'show_answer': show_answer,

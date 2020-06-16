@@ -49,6 +49,18 @@ class ProgressiveQuestionAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ["step"]
 
+class OrderingElementInline(admin.TabularInline):
+    model = OrderingElement
+    min_num = 2
+    extra = 2
+
+@admin.register(OrderingQuestion)
+class OrderingQuestionAdmin(admin.ModelAdmin):
+    inlines = [
+        GenericQuestionInline,
+        OrderingElementInline,
+    ]
+
 @admin.register(TextResponse)
 class TextResponseAdmin(admin.ModelAdmin):
     list_display = ('id', 'response')

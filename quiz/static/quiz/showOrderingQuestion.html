@@ -1,15 +1,30 @@
 <style>
-  #invalid-feedback {
-      width: 100%;
-      margin-top: 0.20rem;
-      font-size: 90%;
-      color: #d9534f;
-    }
+#sortable { display:inline-block; list-style-type: none; margin: 0; padding: 0; width: 100%; }
+#sortable li { word-break: break-word; margin: 5px 0; padding: 1px; float: left; width: 25%; height: 90px; font-size: 2em; text-align: center; }
+#sortable li span {
+  word-wrap: break-word;
+  display: inline-block;
+  border: 1px solid #c5c5c5;
+  /* background: grey; */
+  padding: 0 0.5vw;
+  border-radius: 0.5rem;
 
-  .fa-layers, .fa-check-circle, .fa-times-circle{
-    display:none;
-  }
+}
+#sortable li span:hover {
+    cursor: grab;
+}
+
+#sortable li.ui-sortable-helper span{
+    cursor: grabbing;
+}
+.fit {
+  display: inline-block;
+  white-space: nowrap;
+  width: 100%;
+}
+
 </style>
+
 
 <h1 id="questionNumber">No current question</h1>
 <div style="margin-top:20px;">
@@ -25,14 +40,17 @@
     <source id="audio-source" src="" type="audio/mpeg">
     </audio>
   </div>
+
   <p><strong id="question" class="text-info"></strong></p>
-  <form id="form" action="" onsubmit="return false" class="needs-validation" novalidate>
-    <p id="current-answer-display" style="display:none;"><span class="align-middle">Current answer: </span><span class="text-warning align-middle" id="current-answer"></span> <input id="edit-answer"style="display: inline-flex;" type="button" class="btn btn-primary" value="Edit Answer" onclick=""/></p>
-    <p><label class="helptext" for="id_response"><span class="align-middle">Enter your answer:</span></label> <textarea autofocus class="align-middle" type="text" name="response" maxlength="500" rows="1" id="id_response" style="resize:none;"></textarea>
+  <form id="form" action="" onsubmit="return false">
+    <p id="current-answer-display" style="display:none;">Current answer: <span class="text-warning" id="current-answer"></span></p>
+      <ul id="sortable">
+      </ul>
+      <br><br>
+      <div style="width:100%;">
     <input type="hidden" id="question-id" name="question_id" value=""/>
     <input id="set-answer" type="button" class="btn btn-success" value="Submit"/>
-    <p id="invalid-feedback">
-    </p>
+    </div>
   </form>
   <br>
   <div id="timerCountdown" style="display:none;">
@@ -42,11 +60,10 @@
     </div>
   </div>
 </div>
+
 <div id="answers">
   <h3>Answers</h3>
-  <div id="correct-answer-display">
-
-  </div>
+  <h5 id="correct-answer-display"><strong>Correct Answer: </strong><span id="correct-answer" class="text-success"></span></h5>
   <div style="margin-top:10px" id="answer-display">
 
   </div>

@@ -30,6 +30,14 @@
   {% endif %}
   <form action="" method="post">
     {% csrf_token %}
+    {{ username_form.non_field_errors }}
+    {% if username_form.errors %}
+        {% for field in username_form %}
+            {% for error in field.errors %}
+                <p class="text-warning"> {{ error }} </p>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
     <p>Enter your username:<br> {{ username_form.username }}</p>
     <input type="submit" name="set-name" class="btn btn-success" value="Set Name"/>&nbsp
     <input type="submit" name="cancel-name" class="btn btn-success" value="Cancel" formnovalidate/>

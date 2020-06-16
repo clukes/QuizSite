@@ -40,6 +40,7 @@ No current game
 {% load static %}
 <script src="{% static 'scripts/timer.js' %}"></script>
 <script src="{% static 'scripts/autosize.js' %}"></script>
+<script src="{% static 'scripts/fitty.min.js' %}"></script>
 <script>
   $(document).ready(function() {
       var currentScreen = document.getElementById("current-screen");
@@ -95,7 +96,9 @@ No current game
         document.getElementById('questionNumber').innerHTML = "Question " + question.number;
         document.getElementById('question').innerHTML = question.question;
         if(question.media_type == 'i') {
+          document.getElementById('imageLoading').style.display="block";
           document.getElementById('image').style.display="block";
+          document.getElementById('questionImg').addEventListener('load', imageLoaded);
           document.getElementById('questionImg').src = question.media_url;
         }
         else if(question.media_type == 'v') {
@@ -122,6 +125,18 @@ No current game
             if(selectedID) {
               $('#'+selectedID).prop('checked',true);
             }
+          }
+          else if(question.question_type == "o") {
+            displayOrderingElements(JSON.parse(question.ordering_elements));
+            $( "#sortable" ).sortable();
+            $( "#sortable" ).disableSelection();
+            fitty('.fit', {
+              minSize: 10,
+              maxSize: 200
+            });
+
+            document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleOrderingForm(event);})
+            document.getElementById("set-answer").onclick = handleOrderingForm;
           }
           else {
             if(question.progressive_info) {
@@ -161,16 +176,15 @@ No current game
               document.getElementById("set-answer").onclick = handleForm;
             }
             document.getElementById("edit-answer").onclick = editAnswer;
+            document.getElementById('id_response').value = "";
+            autosize(document.querySelectorAll('textarea'));
+            $("#id_response").keypress(function (e) {
+              if(e.which == 13 && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById("set-answer").click();
+              }
+            });
           }
-
-          document.getElementById('id_response').value = "";
-          autosize(document.querySelectorAll('textarea'));
-          $("#id_response").keypress(function (e) {
-            if(e.which == 13 && !e.shiftKey) {
-              e.preventDefault();
-              document.getElementById("set-answer").click();
-            }
-          });
 
           answers.style.display = "none";
           form.style.display = "block";
@@ -274,6 +288,11 @@ No current game
                   loadQuestion(data);
                 });
               }
+              else if(question.question_type == 'o') {
+                $("#current-screen").load("{% static 'quiz/showOrderingQuestion.html' %}", function() {
+                  loadQuestion(data);
+                });
+              }
               else {
                 $("#current-screen").load("{% static 'quiz/showQuestion.html' %}", function() {
                   loadQuestion(data);
@@ -335,7 +354,7 @@ No current game
           document.getElementById("player-list").innerHTML = data.playerList;
         }
         else if (command === 'playerConnect') {
-          if(data.username !== username) {
+          if(data.username !== username && !document.getElementById("plist-" + data.username)) {
             document.getElementById("player-list").innerHTML += "<p id='plist-" + data.username + "'>" + data.username + "</p>";
           }
         }
@@ -384,6 +403,12 @@ No current game
         console.log(answer);
         var questionID = document.getElementById('question-id').value;
         chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: null });
+      };
+
+      function handleOrderingForm(event) {
+        var answer = $("#sortable").sortable("toArray");
+        var questionID = document.getElementById('question-id').value;
+        chatSocket.sendMessage({ command: 'set_ordering_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: null });
       };
 
       function editAnswer(event) {
@@ -525,7 +550,9 @@ No current game
         if(showMedia) {
           console.log("show");
           if(mediaType == 'i') {
+            document.getElementById('imageLoading').style.display="block";
             document.getElementById('image').style.display="block";
+            document.getElementById('questionImg').addEventListener('load', imageLoaded);
             document.getElementById('questionImg').src = stages[stageNum]["fields"]["media_url"];
             console.log(stages[stageNum]["fields"]["media_url"]);
           }
@@ -559,6 +586,24 @@ No current game
         console.log(comparisonItems);
         divElem.innerHTML = "";
         trends.embed.renderExploreWidgetTo(divElem, "TIMESERIES", {"comparisonItem":comparisonItems,"category":0,"property":""}, {"exploreQuery":"geo=GB&date=today 12-m,today 12-m","guestPath":"https://trends.google.com:443/trends/embed/"});
+      };
+
+      function displayOrderingElements(elements) {
+        var ordering_list = document.getElementById("sortable");
+        for(var i = 0; i < elements.length; i++) {
+          var list_item = document.createElement("li");
+          list_item.className = "ui-state-default";
+          list_item.setAttribute("id", elements[i]["pk"]);
+          list_item.innerHTML = "<div class=\"fit\"><span>" + elements[i]["fields"]["text"] + "</span></div></li>";
+          ordering_list.appendChild(list_item);
+        }
+      };
+
+      function imageLoaded() {
+        console.log("loaded");
+        var element = document.getElementById('imageLoading');
+        element.style.display = "none";
+        console.log(document.getElementById("questionImg").complete);
       };
 });
 </script>

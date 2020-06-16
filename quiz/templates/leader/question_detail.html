@@ -79,25 +79,42 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 <input id="mark-question" type="button" class="btn btn-success" value="Mark Question">
 <br><br>
 <h2>Answers</h2>
-<p style="text-align:left !important;">
 {% for user, response in answers.items %}
 <form name="show-answer-form" id="{{response.id}}" action="" onsubmit="return false" style="display:inline;">
-  <strong>{{user}}</strong> - <span id="{{user}}">{{response.get_response}}</span> (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
-  <input type="hidden" name="responseID" value="{{response.id}}"/>
-  <input type="hidden" name="max_points" value="{{response.get_max_points}}"/>
-  <input name="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show"> &emsp;
-  <label><input type="radio" name="mark" class="correct">Correct <small>(<span name="max_points_display">{{response.get_max_points}}</span> pts)</small></label> &emsp;
-  <label><input type="radio" name="mark" class="incorrect">Incorrect</label> &emsp;
-  <label><input type="radio" name="mark" class="manual">
-      Manual Points: <input type="number" name="points" step="0.01" min="0" max="10" onclick="tickManual(event);">
-  </label> &emsp;
-  <input name="mark-answer" type="button" class="btn btn-success" onclick="markAnswer(event)" value="Mark and Show">
-  <span name="error"></span>
+  <table style="text-align:left !important; width:100%; table-layout:fixed;">
+  <tr style="width:100%; border-top: 1px solid black;">
+    <td style="width:15%; padding:5px; border-right: 1px solid black;"><strong style="word-wrap:break-word !important;">{{user}}</strong></td>
+    <td style="width:75%; padding-left:5px;"><span id="{{user}}">{{response.get_response}}</span>
+    (<span name="marking">{{response.get_marking_display|default:"Unmarked"}}</span>, <span name="points">{{response.points|default:"0"|floatformat:"-2"}}</span> points)
+    <input type="hidden" name="responseID" value="{{response.id}}"/>
+    <input type="hidden" name="max_points" value="{{response.get_max_points}}"/></td>
+  </tr>
+  <tr>
+    <td style="padding:5px; border-right: 1px solid black;"></td>
+    <td style="padding-left:5px;">
+      <table style="width:100; table-layout:fixed;">
+        <tr style="width:100%;">
+          <td style="width:30%;"><label><input type="radio" name="mark" class="correct">Correct <small>(<span name="max_points_display">{{response.get_max_points}}</span> pts)</small></label></td>
+          <td style="width:30%;"><label><input type="radio" name="mark" class="incorrect">Incorrect</label></td>
+          <td style="width:35%;"><label><input type="radio" name="mark" class="manual">
+            Manual Points: <input type="number" name="points" step="0.01" min="0" max="10" onclick="tickManual(event);">
+          </label></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr style="border-bottom: 1px solid black;">
+    <td style="width:15%; padding:5px; border-right: 1px solid black;"><span name="error"></span></td>
+    <td style="padding-left:5px; text-align:justify;">
+      <input name="mark-answer" type="button" class="btn btn-success" onclick="markAnswer(event)" value="Mark and Show">
+      &emsp;<input name="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show">
+    </td>
+  </tr>
+  <tr><td><br></td></tr>
+</table>
 </form>
-<br><br>
 {% endfor %}
 <input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
-</p>
 <br><br>
 {% endif %}
 {% endblock %}
@@ -158,10 +175,13 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
         var answer = data.answer;
         if(answer.username && answer.questionID == questionID) {
           document.getElementById(answer.username).innerHTML = answer.answer;
+          var form = $(jq(answer.username)).closest('form');
           if(answer.maxPoints) {
-            var form = document.getElementById(answer.username).parentElement;
-            form.querySelector('input[name="max_points"]').value = answer.maxPoints;
-            form.querySelector('span[name="max_points_display"]').innerHTML = answer.maxPoints;
+            form.find('input[name="max_points"]').val(answer.maxPoints);
+            form.find('span[name="max_points_display"]').html(answer.maxPoints);
+          }
+          if(answer.points != null) {
+            form.find('span[name="points"]').html(answer.points);
           }
         }
       }
@@ -209,28 +229,28 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     };
 
     function showAnswer(event) {
-      var form = event.toElement.parentElement;
-      var responseID = form.querySelector('input[name="responseID"]').value;
+      var form = $(event.toElement).closest('form');
+      var responseID = form.find('input[name="responseID"]').val();
       chatSocket.sendMessage({ command: 'show_answer', responseID: responseID });
     };
 
     function markAnswer(event) {
-      var form = event.toElement.parentElement;
-      var responseID = form.querySelector('input[name="responseID"]').value;
-      var max_points = form.querySelector('input[name="max_points"]').value;
+      var form = $(event.toElement).closest('form');
+      var responseID = form.find('input[name="responseID"]').val();
+      var max_points = form.find('input[name="max_points"]').val();
       var points = 0;
-      var error = form.querySelector('span[name="error"]').innerHTML;
-      if(form.querySelector('.correct').checked) {
+      var error = form.find('span[name="error"]').html();
+      if(form.find('.correct').is(':checked')) {
         marking = 'c';
         points = max_points;
       }
-      else if(form.querySelector('.incorrect').checked) {
+      else if(form.find('.incorrect').is(':checked')) {
         marking = 'i';
         points = 0;
       }
-      else if(form.querySelector('.manual').checked) {
+      else if(form.find('.manual').is(':checked')) {
         marking = 'p';
-        points = form.querySelector('input[name="points"]').value;
+        points = form.find('input[name="points"]').val();
         if(points === '') {
           error = "No points input.";
           return false;
@@ -261,6 +281,11 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     var timeInterval = setInterval(function() {return false;}, 0);
     var timerEnd = new Date(Date.parse(new Date("{{ game.timerEnd.isoformat }}")));
     timeInterval = initializeClock('timerCountdown', timerEnd, null, timeInterval);
+
+    function jq( myid ) {
+      return "#" + myid.replace( /(:|\.|\[|\]|,|=|@)/g, "\\$1" );
+    }
+
 </script>
 
 

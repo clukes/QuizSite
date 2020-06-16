@@ -1,5 +1,10 @@
-- LEFTOFF:
-- TODO:
+- LEFTOFF: getting automarking done.
+- TODO: Need to send max points with ordering answer. need to check if max points when calculating points, use response max points.
+
+
+- Make sure google trends question works on ipad. have one in next quiz.
+- Automark multiple choice.
+- Put buttons in a table on leader marking screen, so that they're in the same place regardless of username. /
 
 - On question 2 in who is this round, first picture is too big vertically. /
 - On google trends round, get rid of fractions. /
@@ -7,25 +12,27 @@
 - On google trends round, if there's a null it doesn't work. /
 - On google trends round, mcdonald's doesn't work on leader screen. /
 - Google trends round, first place gets 1 point, 2nd gets 0.75, 3rd gets 0.5, 4th gets 0.25. But if 0 searches then get 0.
+- Google trends round, doesn't show graph on ipad. - Problem is the cross-site tracking that's disabled on ipad. It causes it not to load because of the samesite xsrf token.
 
 Have a tiebreaker question.
 
 PRIORITY:
-1. Progressive Round
-  - Get media displaying.
-2. Can't see round images on mobile.
-3. maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
-4. Add import/export.
+1. Can't see round images on mobile.
+2. maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
+3. Add import/export.
 
 ROUND PRIORITY LIST:
-- Progressive Scoring Round (E.g. 1 second of song, 5 seconds, 10 seconds, save at what point someone answers)
-JSON Serialize array maybe
+- Round where you order things. - Automark.
+- Map round have to click on map. - Automark, check distance from actual answer and score based on who gets closest. Show where everyone placed their pins on the show correct answer. When entering an answer, show a current answer pin in a different colour.
+- Questions all on one page, questions have connection. (Maybe incorporate in crossword)
+- Crossword. - Make sure to automark. (How to store in datbase? Is there a crossword to json website?) All answers have a connection which they have to give.
+- Matchup round. - Automark too.
+- Drawing round.
+
 - Outsourced Round (Use Iframe to include another website. In database for the question, store url,
   and search string. Have submit button, when they click it it will search in the iframe for the string,
   in order to get their answer. MIGHT NOT BE POSSIBLE, CROSS-SITE JAVASCRIPT IS NOT POSSIBLE.
   SO CANNOT EASILY SEARCH IN IFRAME)
-- Questions all on one page, pages have connection.
-- Crossword.
 
 - TEST ON MOBILE, ENSURE ALL LOOKS GOOD.
 - FIX PLAYER LIST, DUPLICATE PLAYERS SHOW UP
