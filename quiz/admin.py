@@ -65,6 +65,12 @@ class OrderingQuestionAdmin(admin.ModelAdmin):
 class TextResponseAdmin(admin.ModelAdmin):
     list_display = ('id', 'response')
 
+@admin.register(MapQuestion)
+class MapQuestionAdmin(admin.ModelAdmin):
+    inlines = [
+        GenericQuestionInline,
+    ]
+
 
 class GenericQuestionRoundInline(admin.TabularInline):
     model = GenericQuestion

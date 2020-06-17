@@ -22,7 +22,8 @@ QUESTION_TYPES = (
     ('m', 'Multiple Choice Question'),
     ('p', 'Progressive Question'),
     ('g', 'Google Trends Question'),
-    ('o', 'Ordering Question')
+    ('o', 'Ordering Question'),
+    ('w', 'Map Question')
 )
 
 RESPONSE_TYPES = (
@@ -208,7 +209,11 @@ class OrderingElement(models.Model):
     class Meta:
         unique_together = (('question', 'display_ordering'), ('question', 'correct_ordering'))
 
+class MapQuestion(QuestionDetail):
+    map = models.CharField(max_length=100, default="world")
+
 class GenericResponse(models.Model):
+
     """Model representing a generic response."""
     question = models.ForeignKey('GenericQuestion', on_delete=models.CASCADE, null=False)
     user = models.ForeignKey('User', on_delete=models.CASCADE, null=False)

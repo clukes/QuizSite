@@ -1,5 +1,5 @@
-- LEFTOFF: getting automarking done.
-- TODO: Need to send max points with ordering answer. need to check if max points when calculating points, use response max points.
+- LEFTOFF:
+- TODO: More robust testing on ordering round, including mobile.
 
 
 - Make sure google trends question works on ipad. have one in next quiz.

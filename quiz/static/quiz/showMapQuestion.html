@@ -1,0 +1,37 @@
+<h1 id="questionNumber">No current question</h1>
+<div style="margin-top:20px;">
+  <div id="imageLoading" style="display:none;">
+    <font size="5" color="Tomato">
+        Image loading...
+    </font>
+  </div>
+  <p id="image" style="display:none;"><img id="questionImg" src="" alt="Question Image" style="width:75%;"></p>
+  <div id="video" style="display:none;width:100%;height:0px;position:relative;padding-bottom:56.250%;"><iframe id="videoFrame" src="" frameborder="0" width="100%" height="100%" allowfullscreen style="width:100%;height:100%;position:absolute;left:0px;top:0px;overflow:hidden;"></iframe></div>
+  <div id="audio" style="display:none;">
+    <audio id="audio-player" controls>
+    <source id="audio-source" src="" type="audio/mpeg">
+    </audio>
+  </div>
+  <p><strong id="question" class="text-info"></strong></p>
+  <form id="form" action="" onsubmit="return false">
+    <p id="current-answer-display" style="display:none;"><span class="align-middle">Current answer: </span><span class="text-warning align-middle" id="current-answer"></span> <input id="edit-answer"style="display: inline-flex;" type="button" class="btn btn-primary" value="Edit Answer" onclick=""/></p>
+    <p><label class="helptext" for="id_response"><span class="align-middle">Enter your answer:</span></label> <textarea autofocus class="align-middle" type="text" name="response" maxlength="500" rows="1" id="id_response" style="resize:none;"></textarea>
+    <input type="hidden" id="question-id" name="question_id" value=""/>
+    <input id="set-answer" type="button" class="btn btn-success" value="Submit"/>
+  </form>
+  <div id="vmap" style="width: 100%; height:400px;"></div>
+  <br>
+  <div id="timerCountdown" style="display:none;">
+    Time remaining: <span class="minutes"></span>:<span class="seconds"></span>
+    <div class="progress mx-auto" style="width:50%">
+      <div class="progress-bar bg-success" role="progressbar" style="width:100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+  </div>
+</div>
+<div id="answers">
+  <h3>Answers</h3>
+  <h5 id="correct-answer-display"><strong>Correct Answer: </strong><div id="correct-answer" class="text-success"></div></h5>
+  <div style="margin-top:10px" id="answer-display">
+
+  </div>
+</div>
