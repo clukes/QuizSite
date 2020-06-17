@@ -1,6 +1,7 @@
 - LEFTOFF:
-- TODO: More robust testing on ordering round, including mobile.
+- TODO: More robust testing on ordering round, fix on mobile. Improve the aesthetics.
 
+- Ordering doesn't work on mobile.
 
 - Make sure google trends question works on ipad. have one in next quiz.
 - Automark multiple choice.
