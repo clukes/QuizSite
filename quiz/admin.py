@@ -61,6 +61,18 @@ class OrderingQuestionAdmin(admin.ModelAdmin):
         OrderingElementInline,
     ]
 
+    def save_related(self, request, form, formsets, change):
+        super(OrderingQuestionAdmin, self).save_related(request, form, formsets, change)
+        try:
+            if(form.instance.generic_question.id):
+                generic = GenericQuestion.objects.get(id=form.instance.generic_question.id)
+                answer = ', '.join([str(i) for i in form.instance.elements.order_by('correct_ordering')])
+                generic.answer = answer
+                generic.save()
+        except GenericQuestion.DoesNotExist:
+            pass
+
+
 @admin.register(TextResponse)
 class TextResponseAdmin(admin.ModelAdmin):
     list_display = ('id', 'response')
@@ -70,7 +82,6 @@ class MapQuestionAdmin(admin.ModelAdmin):
     inlines = [
         GenericQuestionInline,
     ]
-
 
 class GenericQuestionRoundInline(admin.TabularInline):
     model = GenericQuestion

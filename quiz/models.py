@@ -187,15 +187,6 @@ def update_step(sender, instance, created=True, **kwargs):
 class OrderingQuestion(QuestionDetail):
     max_points = models.DecimalField(max_digits=10, decimal_places=2, default=1)
 
-    def save(self, *args, **kwargs):
-        # set answer when saved
-        super(OrderingQuestion, self).save(*args, **kwargs)
-        answer = ', '.join([str(i) for i in self.elements.order_by('correct_ordering')])
-        print(answer)
-        generic = GenericQuestion.objects.get(id=self.generic_question.id)
-        generic.answer = answer
-        generic.save()
-
 class OrderingElement(models.Model):
     question = models.ForeignKey('OrderingQuestion', related_name='elements', on_delete=models.CASCADE, null=False)
     text = models.CharField(max_length=300)
