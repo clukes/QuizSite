@@ -42,8 +42,7 @@
       {% endfor %}
       </ul>
     {% endif %}
-    <br>
-    <p>Correct answer: {{genericquestion.answer}}<br>
+    <p>Correct answer: {{genericquestion.answer}}<br></p>
     {% if genericquestion.question_type == 'g' %}
     <script type="text/javascript">
       var comparisonItems = [];
@@ -64,9 +63,13 @@
       );
     </script>
     <br>
+    {% elif genericquestion.question_type == 'w' %}
+    <div id="vmap" style="width: 100%; height:400px;"></div>
+    {{ genericquestion.detail.lat|json_script:"lat" }}
+    {{ genericquestion.detail.lng|json_script:"lng" }}
+    <br>
     {% endif %}
     <input id="show-correct" type="button" class="btn btn-success" onclick="showCorrectAnswer(event)" value="Show Correct Answer">
-    </p>
   </div>
 {% if request.session.currentGameCode %}
 <br>
@@ -113,6 +116,11 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
   <tr><td><br></td></tr>
 </table>
 </form>
+{% if response.get_response and response.get_response.strip %}
+{% with "user-"|add:user as scriptname %}
+{{response.get_response|json_script:scriptname}}
+{% endwith %}
+{% endif %}
 {% endfor %}
 <input id="show-all" type="button" class="btn btn-success" onclick="showAllAnswers(event)" value="Show All"> &emsp;
 <br><br>
@@ -129,6 +137,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 {% load static %}
 <script src="{% static 'scripts/timer.js' %}"></script>
 <script>
+  $(document).ready(function() {
     const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
     const questionID = JSON.parse(document.getElementById('questionID').textContent);
 
@@ -183,6 +192,10 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
           if(answer.points != null) {
             form.find('span[name="points"]').html(answer.points);
           }
+        }
+        if($.trim($("#vmap").html())!='') {
+          var coords = answer.answer;
+          mapObj.addMarker(answer.username, {latLng: [coords.lat, coords.lng], name: answer.username}, []);
         }
       }
       else if (command === 'updateMaxPoints') {
@@ -285,8 +298,62 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     function jq( myid ) {
       return "#" + myid.replace( /(:|\.|\[|\]|,|=|@)/g, "\\$1" );
     }
-
+    {% if genericquestion.question_type == 'w' %}
+      $('#vmap').vectorMap({
+        map: 'world_mill',
+        backgroundColor: '#a5bfdd',
+        regionsSelectable: false,
+        regionsSelectableOne: false,
+        onRegionTipShow: function(e, el, code){
+            e.preventDefault();
+        },
+        labels: {
+          markers: {
+            render: function(code){
+              return code;
+            },
+          }
+        },
+        regionStyle: {
+          initial: {
+            fill: '#f4f3f0'
+          },
+          selected: {
+            fill: '#c9dfaf'
+          }
+        },
+        markerStyle: {
+          initial: {
+            fill: '#F8E23B',
+            stroke: '#383f47'
+          }
+        },
+        markers: [
+        ],
+        series: {
+          markers: [{
+            attribute: 'image',
+            scale: {
+              'mrk': "{% static 'img/pin_for_current.png'%}",
+            },
+            values: [],
+          }]
+        }
+      });
+      var mapObj = $('#vmap').vectorMap('get', 'mapObject');
+      var correctCoords = [parseFloat(document.getElementById('lat').textContent.replace(/\"(.+)\"/gm, "$1")), parseFloat(document.getElementById('lng').textContent.replace(/\"(.+)\"/gm, "$1"))];
+      mapObj.addMarker("Correct Answer", {latLng: correctCoords, name:"Correct Answer", style: {fill: 'lime'}}, [])
+      {% for user, response in answers.items %}
+        {% if response.get_response and response.get_response.strip %}
+        var text = document.getElementById('user-{{user|escapejs}}').textContent.replace(/\"(.+)\"/gm, "$1").replace(/\'/g, '"');
+        var coords = JSON.parse(text);
+        mapObj.addMarker("{{user|escapejs}}", {latLng: [coords.lat, coords.lng], name: "{{user|escapejs}}"}, []);
+        {% endif %}
+      {% endfor %}
+      {% endif %}
+    });
 </script>
+
 
 
 {% endblock %}

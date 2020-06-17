@@ -1,7 +1,10 @@
-- LEFTOFF:
-- TODO: More robust testing on ordering round, fix on mobile. Improve the aesthetics.
-
-- Ordering doesn't work on mobile.
+- LEFTOFF: Started getting map working
+- TODO: - More robust testing on ordering round. Improve the aesthetics.
+        - Setup displaying correct answer and other users answers on marking map.
+        - Make sure to set colour of the current users own answer to highlight their answer.
+        - Figure out what to put in text display of answer on marking screen.
+        - Setup automark.
+        - Figure out what to do if labels overlap.
 
 - Make sure google trends question works on ipad. have one in next quiz.
 - Automark multiple choice.

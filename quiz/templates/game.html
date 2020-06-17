@@ -50,6 +50,7 @@ No current game
       const username = JSON.parse(document.getElementById('username').textContent);
       const roomCode = JSON.parse(document.getElementById('room-code').textContent);
       var timeInterval = setInterval(function() {return false;}, 0);
+      var answerCoords;
 
       var protocol = '';
       if (window.location.protocol === 'https:') {
@@ -113,7 +114,6 @@ No current game
         var answers = document.getElementById("answers");
         document.getElementById('correct-answer-display').style.display = "none";
         if(data.marking === false) {
-          document.getElementById("current-answer").innerHTML = data.answer;
           var timerEnd = new Date(Date.parse(new Date(data.timerEnd)));
           console.log(timerEnd);
           timeInterval = initializeClock('timerCountdown', timerEnd, data.timeRemaining, timeInterval);
@@ -137,6 +137,11 @@ No current game
 
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleOrderingForm(event);})
             document.getElementById("set-answer").onclick = handleOrderingForm;
+          }
+          else if(question.question_type == "w") {
+            var map = loadMap();
+            document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMapForm(event);})
+            document.getElementById("set-answer").onclick = handleMapForm;
           }
           else {
             if(question.progressive_info) {
@@ -166,13 +171,14 @@ No current game
                 showNextHint(stages, step, minPoints, question.media_type);
               }, false);
             }
-            document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
             if(question.question_type == "g") {
+              document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleGoogleTrendsForm(question.question, event);})
               document.getElementById("set-answer").addEventListener('click', function(event) {
                 handleGoogleTrendsForm(question.question, event);
               }, false);
             }
             else {
+              document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleForm(event);})
               document.getElementById("set-answer").onclick = handleForm;
             }
             document.getElementById("edit-answer").onclick = editAnswer;
@@ -189,6 +195,12 @@ No current game
           answers.style.display = "none";
           form.style.display = "block";
           if(data.answer) {
+            if(question.question_type == "w" && $.trim($("#vmap").html())!='') {
+              addCurrentMarker(JSON.parse(data.answer.replace(/\'/g, '"')));
+            }
+            else {
+              document.getElementById("current-answer").innerHTML = data.answer;
+            }
             document.getElementById("current-answer-display").style.display="block";
           }
         }
@@ -295,7 +307,7 @@ No current game
               }
               else if(question.question_type == 'w') {
                 $("#current-screen").load("{% static 'quiz/showMapQuestion.html' %}", function() {
-                  loadMap();
+                  loadQuestion(data);
                 });
               }
               else {
@@ -309,11 +321,18 @@ No current game
           answer = data.answer;
           questionID = document.getElementById('question-id').value;
           if(answer.username == username && answer.questionID == questionID) {
-            document.getElementById('current-answer').innerHTML = answer.answer;
-            if(answer.answer) {
-              document.getElementById("current-answer-display").style.display="block";
-              document.getElementById('id_response').value = "";
-              autosize.update(document.getElementById('id_response'));
+            if($.trim($("#vmap").html())!='') {
+              addCurrentMarker(answer.answer);
+            }
+            else {
+              document.getElementById('current-answer').innerHTML = answer.answer;
+              if(answer.answer) {
+                document.getElementById("current-answer-display").style.display="block";
+                if(document.getElementById('id_response')) {
+                  document.getElementById('id_response').value = "";
+                  autosize.update(document.getElementById('id_response'));
+                }
+              }
             }
           }
         }
@@ -414,6 +433,14 @@ No current game
         var answer = $("#sortable").sortable("toArray");
         var questionID = document.getElementById('question-id').value;
         chatSocket.sendMessage({ command: 'set_ordering_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: null });
+      };
+
+      function handleMapForm(event) {
+        if(answerCoords) {
+          var answer = answerCoords;
+          var questionID = document.getElementById('question-id').value;
+          chatSocket.sendMessage({ command: 'set_text_answer', questionID: questionID, gameID: roomCode, userID: userID, answer: answer, maxPoints: null });
+        }
       };
 
       function editAnswer(event) {
@@ -612,23 +639,64 @@ No current game
       };
 
       function loadMap() {
-        jQuery('#vmap').vectorMap(
-        {
-          map: 'world_en',
+        var map = new jvm.Map({
+          container: $('#vmap'),
+          map: 'world_mill',
           backgroundColor: '#a5bfdd',
-          borderColor: '#818181',
-          borderOpacity: 0.25,
-          borderWidth: 1,
-          color: '#f4f3f0',
-          enableZoom: true,
-          hoverColor: '#c9dfaf',
-          hoverOpacity: null,
-          normalizeFunction: 'linear',
-          scaleColors: ['#b6d6ff', '#005ace'],
-          selectedColor: '#c9dfaf',
-          selectedRegions: null,
-          showTooltip: false,
+          regionsSelectable: true,
+          regionsSelectableOne: true,
+          onRegionTipShow: function(e, el, code){
+              e.preventDefault();
+          },
+          onRegionClick: function(e, code) {
+            console.log(code);
+            console.log(e);
+          },
+          regionStyle: {
+            initial: {
+              fill: '#f4f3f0'
+            },
+            selected: {
+              fill: '#c9dfaf'
+            }
+          },
+          markerStyle: {
+            initial: {
+              fill: 'brown',
+              stroke: '#383f47'
+            }
+          },
+          markers: [],
+          series: {
+            markers: [{
+              attribute: 'fill',
+              scale: {
+                'current': '#c9dfaf',
+              },
+              values: [],
+            }]
+          }
         });
+
+        map.container.click(function(e){
+          var latLng = map.pointToLatLng(
+                  e.pageX - map.container.offset().left,
+                  e.pageY - map.container.offset().top
+              ),
+              targetCls = $(e.target).attr('class');
+
+          if (latLng && (!targetCls || (targetCls && $(e.target).attr('class').indexOf('jvectormap-marker') === -1))) {
+            answerCoords = {"lat":latLng.lat, "lng":latLng.lng};
+            map.addMarker("unsubmitted", {name:"Unsubmitted", latLng:[latLng.lat, latLng.lng]}, []);
+          }
+        });
+        return map;
+      };
+
+      function addCurrentMarker(coords) {
+        var marker = {name: "Current", latLng: [coords.lat, coords.lng], style: {fill: '#f0ad4e'}};
+        $('#vmap').vectorMap('get', 'mapObject').addMarker("current", marker, []);
+        document.getElementById("current-answer-display").style.display="block";
       };
 });
 </script>

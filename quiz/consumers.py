@@ -339,12 +339,13 @@ class GameConsumer(WebsocketConsumer):
             userID = data['userID']
             questionID = data['questionID']
             answer = data['answer']
+            print(answer)
             gameID = data['gameID']
             maxPoints = data['maxPoints']
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
-            if(question.question_type in ['t', 'm', 'p', 'g']):
+            if(question.question_type in ['t', 'm', 'p', 'g', 'w']):
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)

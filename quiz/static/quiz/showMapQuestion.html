@@ -14,12 +14,12 @@
   </div>
   <p><strong id="question" class="text-info"></strong></p>
   <form id="form" action="" onsubmit="return false">
-    <p id="current-answer-display" style="display:none;"><span class="align-middle">Current answer: </span><span class="text-warning align-middle" id="current-answer"></span> <input id="edit-answer"style="display: inline-flex;" type="button" class="btn btn-primary" value="Edit Answer" onclick=""/></p>
-    <p><label class="helptext" for="id_response"><span class="align-middle">Enter your answer:</span></label> <textarea autofocus class="align-middle" type="text" name="response" maxlength="500" rows="1" id="id_response" style="resize:none;"></textarea>
+    <p id="current-answer-display" style="display:none;"><span class="align-middle">Current answer: </span><span class="text-warning align-middle">Orange marker shown below</span></p>
+    <div id="vmap" style="width: 100%; height:400px;"></div>
+    <br>
     <input type="hidden" id="question-id" name="question_id" value=""/>
     <input id="set-answer" type="button" class="btn btn-success" value="Submit"/>
   </form>
-  <div id="vmap" style="width: 100%; height:400px;"></div>
   <br>
   <div id="timerCountdown" style="display:none;">
     Time remaining: <span class="minutes"></span>:<span class="seconds"></span>

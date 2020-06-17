@@ -9,11 +9,15 @@ no_space_validator = RegexValidator(
     inverse_match=True,
     code='invalid_username')
 
+alphanumeric = RegexValidator(
+    r'^[0-9a-zA-Z]*$',
+    'Only alphanumeric characters are allowed.')
+
 class TextReponseForm(forms.Form):
     response = forms.CharField(max_length=300, help_text="Enter your answer.")
 
 class UsernameForm(forms.Form):
-    username = forms.CharField(max_length=300, help_text="Enter your username.", validators=[no_space_validator])
+    username = forms.CharField(max_length=300, help_text="Enter your username.", validators=[no_space_validator, alphanumeric])
 
 class JoinRoomForm(forms.Form):
     room_Code = forms.IntegerField(help_text="Enter the room code.")
