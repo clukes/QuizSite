@@ -9,7 +9,7 @@
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-  <link rel="stylesheet" href="{% static 'jvqmap/jquery-jvectormap-2.0.5.css' %}" media="screen" type="text/css">
+  <link rel="stylesheet" href="{% static 'jvectormap/jquery-jvectormap-2.0.5.css' %}" media="screen" type="text/css">
   {% block style %}
   {% endblock %}
   <style>
@@ -90,9 +90,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"></script>
 {% load static %}
 <script src="{% static 'scripts/jquery.ui.touch-punch.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'jvqmap/jquery-jvectormap-2.0.5.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'jvqmap/country_coords.js' %}"></script>
-<script type="text/javascript" src="{% static 'jvqmap/maps/jquery-jvectormap-world-mill.js' %}" charset="utf-8"></script>
+<script type="text/javascript" src="{% static 'jvectormap/jquery-jvectormap-2.0.5.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'jvectormap/country_coords.js' %}"></script>
+<script type="text/javascript" src="{% static 'jvectormap/maps/jquery-jvectormap-world-mill.js' %}" charset="utf-8"></script>
+<script type="text/javascript" src="{% static 'jvectormap/maps/jquery-jvectormap-uk_regions-mill.js' %}" charset="utf-8"></script>
 <script>
     $(document).ready(function(){
       console.log("ready");

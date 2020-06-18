@@ -139,7 +139,7 @@ No current game
             document.getElementById("set-answer").onclick = handleOrderingForm;
           }
           else if(question.question_type == "w") {
-            var map = loadMap();
+            var map = loadMap(question.map);
             document.getElementById("form").addEventListener('submit', function(event){event.preventDefault();handleMapForm(event);})
             document.getElementById("set-answer").onclick = handleMapForm;
           }
@@ -196,7 +196,7 @@ No current game
           form.style.display = "block";
           if(data.answer) {
             if(question.question_type == "w" && $.trim($("#vmap").html())!='') {
-              addCurrentMarker(JSON.parse(data.answer.replace(/\'/g, '"')));
+              addCurrentMarker(JSON.parse(singleQuotesToDouble(data.answer)));
             }
             else {
               document.getElementById("current-answer").innerHTML = data.answer;
@@ -213,6 +213,12 @@ No current game
             initialAppendToStagesTable(stages, question.media_type);
             document.getElementById('next-hint-paragraph').style.display = "none";
             document.getElementById('hints-caption').style.display = "none";
+          }
+          else if(question.question_type == "w") {
+            var map = loadMap(question.map, false);
+            document.getElementById('vmaplocation').appendChild(
+              document.getElementById('vmap')
+            );
           }
           form.style.display = "none";
           document.getElementById("answer-display").innerHTML = "";
@@ -323,6 +329,7 @@ No current game
           if(answer.username == username && answer.questionID == questionID) {
             if($.trim($("#vmap").html())!='') {
               addCurrentMarker(answer.answer);
+              document.getElementById("current-answer-display").style.display="block";
             }
             else {
               document.getElementById('current-answer').innerHTML = answer.answer;
@@ -338,13 +345,20 @@ No current game
         }
         else if (command === 'showAnswer') {
           questionID = document.getElementById('question-id').value;
-          if(questionID == data.questionID) {
+          if(questionID == data.questionID && document.getElementById('answers').style.display !== "none") {
             usernameElem = document.getElementById('answers-' + data.username);
             if(usernameElem === null) {
               document.getElementById('answer-display').innerHTML += data.answerHTML;
             }
             else {
               usernameElem.innerHTML = data.answerHTML;
+            }
+            if($.trim($("#vmap").html())!='') {
+              fill = 'gold';
+              if(data.username == username) {
+                fill = '#f0ad4e';
+              }
+              addMarker(data.username, JSON.parse(singleQuotesToDouble(data.answer)), {fill:fill});
             }
           }
         }
@@ -364,6 +378,11 @@ No current game
             }
             else {
               document.getElementById('correct-answer').innerHTML = htmlDecode(data.answer);
+            }
+            if($.trim($("#vmap").html())!='') {
+              if(data.coords) {
+                addMarker("Correct Answer", data.coords, {fill:"lime"});
+              }
             }
           }
         }
@@ -638,19 +657,24 @@ No current game
         console.log(document.getElementById("questionImg").complete);
       };
 
-      function loadMap() {
+      function loadMap(map, canAddMarkers=true) {
         var map = new jvm.Map({
           container: $('#vmap'),
-          map: 'world_mill',
+          map: map,
           backgroundColor: '#a5bfdd',
           regionsSelectable: true,
           regionsSelectableOne: true,
           onRegionTipShow: function(e, el, code){
               e.preventDefault();
           },
-          onRegionClick: function(e, code) {
-            console.log(code);
-            console.log(e);
+          labels: {
+            markers: {
+              render: function(code){
+                if(!canAddMarkers){
+                  return code;
+                }
+              },
+            }
           },
           regionStyle: {
             initial: {
@@ -666,37 +690,37 @@ No current game
               stroke: '#383f47'
             }
           },
-          markers: [],
-          series: {
-            markers: [{
-              attribute: 'fill',
-              scale: {
-                'current': '#c9dfaf',
-              },
-              values: [],
-            }]
-          }
         });
 
-        map.container.click(function(e){
-          var latLng = map.pointToLatLng(
-                  e.pageX - map.container.offset().left,
-                  e.pageY - map.container.offset().top
-              ),
-              targetCls = $(e.target).attr('class');
-
-          if (latLng && (!targetCls || (targetCls && $(e.target).attr('class').indexOf('jvectormap-marker') === -1))) {
-            answerCoords = {"lat":latLng.lat, "lng":latLng.lng};
-            map.addMarker("unsubmitted", {name:"Unsubmitted", latLng:[latLng.lat, latLng.lng]}, []);
-          }
-        });
+        if(canAddMarkers) {
+          map.container.click(function(e){
+            var latLng = map.pointToLatLng(
+                    e.pageX - map.container.offset().left,
+                    e.pageY - map.container.offset().top
+                ),
+                targetCls = $(e.target).attr('class');
+            if (latLng && (!targetCls || (targetCls && $(e.target).attr('class').indexOf('jvectormap-marker') === -1))) {
+              answerCoords = {"lat":latLng.lat, "lng":latLng.lng};
+              map.addMarker("unsubmitted", {name:"Unsubmitted", latLng:[latLng.lat, latLng.lng]}, []);
+            }
+          });
+        }
         return map;
       };
 
       function addCurrentMarker(coords) {
-        var marker = {name: "Current", latLng: [coords.lat, coords.lng], style: {fill: '#f0ad4e'}};
-        $('#vmap').vectorMap('get', 'mapObject').addMarker("current", marker, []);
-        document.getElementById("current-answer-display").style.display="block";
+        addMarker("Current", coords, {fill: '#f0ad4e'});
+      };
+
+      function addMarker(name, coords, style={}) {
+        if(coords.lat && coords.lng) {
+          var marker = {name: name, latLng: [coords.lat, coords.lng], style: style};
+          $('#vmap').vectorMap('get', 'mapObject').addMarker(name, marker, []);
+        }
+      };
+
+      function singleQuotesToDouble(str) {
+        return str.replace(/\'/g, '"');
       };
 });
 </script>

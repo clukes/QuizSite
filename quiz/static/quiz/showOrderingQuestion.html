@@ -1,14 +1,29 @@
 <style>
 #sortable { display:inline-block; list-style-type: none; margin: 0; padding: 0; width: 100%; }
-#sortable li { word-break: break-word; margin: 5px 0; padding: 1px; float: left; width: 25%; height: 90px; font-size: 2em; text-align: center; }
+#sortable li {
+  border: 1px solid #c5c5c5;
+  border-radius: 0.5rem;
+  word-break: break-word;
+  margin: 5px 1%;
+  padding: 0px;
+  float: left;
+  width: 23%;
+  height: 90px;
+  font-size: 2em;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+ }
+
 #sortable li span {
   word-wrap: break-word;
   display: inline-block;
-  border: 1px solid #c5c5c5;
+  margin:5px;
+  /* border: 1px solid #c5c5c5; */
   /* background: grey; */
-  padding: 0 0.5vw;
-  border-radius: 0.5rem;
-
+  /* padding: 0 0.5vw; */
+  /* border-radius: 0.5rem; */
 }
 #sortable li span:hover {
     cursor: grab;
@@ -21,6 +36,7 @@
   display: inline-block;
   white-space: nowrap;
   width: 100%;
+  vertical-align: middle;
 }
 
 </style>

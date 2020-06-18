@@ -109,7 +109,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
   <tr style="border-bottom: 1px solid black;">
     <td style="width:15%; padding:5px; border-right: 1px solid black;"><span name="error"></span></td>
     <td style="padding-left:5px; text-align:justify;">
-      <input name="mark-answer" type="button" class="btn btn-success" onclick="markAnswer(event)" value="Mark and Show">
+      <input name="mark-answer" type="button" class="btn btn-success" onclick="{% if genericquestion.question_type == 'w' %}markMapAnswer(event){% else %}markAnswer(event){% endif %}" value="Mark and Show">
       &emsp;<input name="show-answer" type="button" class="btn btn-success" onclick="showAnswer(event)" value="Show">
     </td>
   </tr>
@@ -137,7 +137,6 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
 {% load static %}
 <script src="{% static 'scripts/timer.js' %}"></script>
 <script>
-  $(document).ready(function() {
     const roomCode = JSON.parse(document.getElementById('currentGameCode').textContent);
     const questionID = JSON.parse(document.getElementById('questionID').textContent);
 
@@ -191,10 +190,12 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
           }
           if(answer.points != null) {
             form.find('span[name="points"]').html(answer.points);
+            form.find('span[name="marking"]').html(answer.marking);
           }
         }
         if($.trim($("#vmap").html())!='') {
           var coords = answer.answer;
+          var mapObj = $('#vmap').vectorMap('get', 'mapObject');
           mapObj.addMarker(answer.username, {latLng: [coords.lat, coords.lng], name: answer.username}, []);
         }
       }
@@ -278,6 +279,12 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
       chatSocket.sendMessage({ command: 'mark_answer', responseID: responseID, marking: marking, points: points});
     };
 
+    function markMapAnswer(event) {
+      var form = $(event.toElement).closest('form');
+      var responseID = form.find('input[name="responseID"]').val();
+      chatSocket.sendMessage({ command: 'mark_map_answer', responseID: responseID});
+    }
+
     function showAllAnswers(event) {
       chatSocket.sendMessage({ command: 'show_all_answers', questionID: questionID, gameID: roomCode });
     };
@@ -298,9 +305,18 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
     function jq( myid ) {
       return "#" + myid.replace( /(:|\.|\[|\]|,|=|@)/g, "\\$1" );
     }
+
+    function removeOuterDoubleQuotes(str) {
+      return str.replace(/\"(.+)\"/gm, "$1");
+    }
+
+    function singleQuotesToDouble(str) {
+      return str.replace(/\'/g, '"');
+    }
     {% if genericquestion.question_type == 'w' %}
+    $(document).ready(function() {
       $('#vmap').vectorMap({
-        map: 'world_mill',
+        map: '{{genericquestion.detail.map|escapejs}}',
         backgroundColor: '#a5bfdd',
         regionsSelectable: false,
         regionsSelectableOne: false,
@@ -328,8 +344,7 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
             stroke: '#383f47'
           }
         },
-        markers: [
-        ],
+        markers: [],
         series: {
           markers: [{
             attribute: 'image',
@@ -341,17 +356,17 @@ Timer: <input id="timerLength" type="number" step="1" min="1" value="30" style="
         }
       });
       var mapObj = $('#vmap').vectorMap('get', 'mapObject');
-      var correctCoords = [parseFloat(document.getElementById('lat').textContent.replace(/\"(.+)\"/gm, "$1")), parseFloat(document.getElementById('lng').textContent.replace(/\"(.+)\"/gm, "$1"))];
+      var correctCoords = [parseFloat(removeOuterDoubleQuotes(document.getElementById('lat').textContent)), parseFloat(removeOuterDoubleQuotes(document.getElementById('lng').textContent))];
       mapObj.addMarker("Correct Answer", {latLng: correctCoords, name:"Correct Answer", style: {fill: 'lime'}}, [])
       {% for user, response in answers.items %}
         {% if response.get_response and response.get_response.strip %}
-        var text = document.getElementById('user-{{user|escapejs}}').textContent.replace(/\"(.+)\"/gm, "$1").replace(/\'/g, '"');
+        var text = singleQuotesToDouble(removeOuterDoubleQuotes(document.getElementById('user-{{user|escapejs}}').textContent));
         var coords = JSON.parse(text);
         mapObj.addMarker("{{user|escapejs}}", {latLng: [coords.lat, coords.lng], name: "{{user|escapejs}}"}, []);
         {% endif %}
       {% endfor %}
-      {% endif %}
     });
+    {% endif %}
 </script>
 
 

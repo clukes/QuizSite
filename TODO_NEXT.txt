@@ -1,10 +1,8 @@
 - LEFTOFF: Started getting map working
 - TODO: - More robust testing on ordering round. Improve the aesthetics.
-        - Setup displaying correct answer and other users answers on marking map.
-        - Make sure to set colour of the current users own answer to highlight their answer.
-        - Figure out what to put in text display of answer on marking screen.
-        - Setup automark.
-        - Figure out what to do if labels overlap.
+
+- Ordering round can you set margin as percentage?
+- Map round maybe have some questions show labels and some not.
 
 - Make sure google trends question works on ipad. have one in next quiz.
 - Automark multiple choice.
@@ -25,11 +23,12 @@ PRIORITY:
 2. maybe for video rounds, i could try make sure low quality plays, and also maybe i put a button that says "video not playing?", which then shows an image that has like a few screenshots from video.
 3. Add import/export.
 
+
 ROUND PRIORITY LIST:
 - Round where you order things. - Automark.
 - Map round have to click on map. - Automark, check distance from actual answer and score based on who gets closest. Show where everyone placed their pins on the show correct answer. When entering an answer, show a current answer pin in a different colour.
 - Questions all on one page, questions have connection. (Maybe incorporate in crossword)
-- Crossword. - Make sure to automark. (How to store in datbase? Is there a crossword to json website?) All answers have a connection which they have to give.
+- Crossword. - Make sure to automark. (How to store in datbase? crossword to json https://github.com/keiranking/Phil?) All answers have a connection which they have to give.
 - Matchup round. - Automark too.
 - Drawing round.
 

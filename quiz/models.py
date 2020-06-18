@@ -28,6 +28,7 @@ QUESTION_TYPES = (
 
 RESPONSE_TYPES = (
     ('t', 'Text'),
+    ('w', 'Map')
 )
 
 class GenericQuestion(models.Model):
@@ -84,7 +85,10 @@ class GenericQuestion(models.Model):
         return self.detail
 
     def get_user_response(self, user, game):
-        response, created = self.genericresponse_set.get_or_create(user=user, game=game)
+        type = 't'
+        if self.question_type == 'w':
+            type = 'w'
+        response, created = self.genericresponse_set.get_or_create(user=user, game=game, type=type)
         return response
 
     def get_all_users_responses(self, users, game):
@@ -201,7 +205,7 @@ class OrderingElement(models.Model):
         unique_together = (('question', 'display_ordering'), ('question', 'correct_ordering'))
 
 class MapQuestion(QuestionDetail):
-    map = models.CharField(max_length=100, default="world")
+    map = models.CharField(max_length=100, default="world_mill")
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lng = models.DecimalField(max_digits=9, decimal_places=6)
 

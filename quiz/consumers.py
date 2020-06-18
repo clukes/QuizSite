@@ -13,6 +13,14 @@ from django.contrib.auth.models import AnonymousUser
 from django.core import serializers
 from django.utils import timezone
 from django.db.models import F
+import ast
+from decimal import Decimal
+import math
+
+MAP_MAX_DISTANCES = {
+    'world_mill': 200,
+    'uk_regions_mill': 10,
+}
 
 class QueryAuthMiddleware:
     """
@@ -235,7 +243,8 @@ class GameConsumer(WebsocketConsumer):
                 'command': 'showAnswer',
                 'questionID': response.question.id,
                 'username': response.user.username,
-                'answerHTML': self.answer_to_html(response)
+                'answerHTML': self.answer_to_html(response),
+                'answer': response.get_response()
             }
         except GenericResponse.DoesNotExist:
             print("Game does not exist")
@@ -253,6 +262,55 @@ class GameConsumer(WebsocketConsumer):
             marking = data['marking']
             points = data['points']
             response = GenericResponse.objects.get(id=responseID)
+            response.marking = marking
+            response.points = points
+            response.save()
+            content = {
+                'command': 'markedAnswer',
+                'responseID': responseID,
+                'marking': response.get_marking_display(),
+                'points': response.get_points(),
+            }
+            self.send_message(content)
+            self.show_answer(data)
+        except GenericResponse.DoesNotExist:
+            pass
+
+    def mark_map_answer(self, data):
+        # Calculate points for answer. Then reshow answer to users.
+        try:
+            responseID = data['responseID']
+            response = GenericResponse.objects.get(id=responseID)
+            coords = ast.literal_eval(response.get_response())
+            correctCoords = {'lat': response.question.detail.lat, 'lng': response.question.detail.lng}
+            latDist = abs(correctCoords['lat'] - Decimal(coords['lat']))
+            lngDist = abs(correctCoords['lng'] - Decimal(coords['lng']))
+            map = response.question.detail.map
+            if(map == "world_mill"):
+                latDist = min(latDist, 180-latDist)
+                lngDist = min(lngDist, 360-lngDist)
+            dist = math.sqrt((latDist**2) + (lngDist**2))
+            print(dist)
+            max_dist = MAP_MAX_DISTANCES[map]
+            points = 100/(1+((dist/(max_dist/10))**((-0.00789*max_dist)+3.07894)))
+            print(points)
+            if(points < 10):
+                points = 0
+            else:
+                points = round(points/100, 1)
+            # points = 100*math.exp((-dist)/(max_dist/8))
+            # print(points)
+            # if(points > 75):
+            #     points = math.ceil(points/10)/10
+            # else:
+            #     points = round(points/100, 1)
+            # print(points)
+            if(points == 1):
+                marking = 'c'
+            elif(points == 0):
+                marking = 'i'
+            else:
+                marking = 'p'
             response.marking = marking
             response.points = points
             response.save()
@@ -292,6 +350,7 @@ class GameConsumer(WebsocketConsumer):
         answer = data['answer']
         comparisonItems = None
         questionType = 't'
+        coords = None
         try:
             question = GenericQuestion.objects.get(id=questionID)
             questionType = question.question_type
@@ -301,6 +360,8 @@ class GameConsumer(WebsocketConsumer):
                 users = game.user_set.all()
                 answers = question.get_all_users_responses(users, game)
                 comparisonItems = self.answers_to_comparisonItems(answers)
+            elif questionType == 'w':
+                coords = {"lat": str(question.detail.lat), "lng": str(question.detail.lng)}
         except (GenericQuestion.DoesNotExist, Game.DoesNotExist, TextResponse.DoesNotExist) as e:
             pass
         content = {
@@ -308,7 +369,8 @@ class GameConsumer(WebsocketConsumer):
             'questionID': questionID,
             'questionType': questionType,
             'comparisonItems': comparisonItems,
-            'answer': answer
+            'answer': answer,
+            'coords': coords
         }
         self.send_message_to_group(content)
 
@@ -339,14 +401,16 @@ class GameConsumer(WebsocketConsumer):
             userID = data['userID']
             questionID = data['questionID']
             answer = data['answer']
-            print(answer)
             gameID = data['gameID']
             maxPoints = data['maxPoints']
             game = Game.objects.get(id=gameID)
             user = User.objects.get(id=userID)
             question = GenericQuestion.objects.get(id=questionID)
             if(question.question_type in ['t', 'm', 'p', 'g', 'w']):
-                response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
+                type = 't'
+                if(question.question_type == 'w'):
+                    type = 'w'
+                response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type=type)
                 if response.response_detail is None:
                     text_response = TextResponse(response=answer)
                     text_response.save()
@@ -355,9 +419,11 @@ class GameConsumer(WebsocketConsumer):
                     response_detail = response.response_detail
                     response_detail.response = answer
                     response_detail.save()
+
+                response.type = type
                 if(maxPoints):
                     response.max_points = maxPoints
-                    response.save()
+                response.save()
                 content = {
                     'username': user.username,
                     'answer': answer,
@@ -398,6 +464,12 @@ class GameConsumer(WebsocketConsumer):
                 if(i > 0):
                     points = (correct * float(maxPoints)) / i
 
+                marking='p'
+                if(points == maxPoints):
+                    marking='c'
+                elif(points == 0):
+                    marking='i'
+
                 textAnswer = ', '.join([str(question.detail.elements.get(pk=i)) for i in answer])
                 response, created = GenericResponse.objects.get_or_create(user=user, question=question, game=game, type='t')
                 if response.response_detail is None:
@@ -409,7 +481,8 @@ class GameConsumer(WebsocketConsumer):
                     response_detail.response = textAnswer
                     response_detail.save()
 
-                response.marking="p"
+                response.max_points = maxPoints
+                response.marking=marking
                 response.points=points
                 response.save()
 
@@ -418,7 +491,8 @@ class GameConsumer(WebsocketConsumer):
                     'answer': textAnswer,
                     'questionID': question.id,
                     'maxPoints': defaultfilters.floatformat(maxPoints, "-2"),
-                    'points': points
+                    'points': points,
+                    'marking': response.get_marking_display()
                 }
                 message = {
                     'command': 'answer',
@@ -581,16 +655,19 @@ class GameConsumer(WebsocketConsumer):
         multiple_choice_form = None
         progressive_info = None
         ordering_elements = None
+        map = None
         if question.question_type == 'm':
             multiple_choice_form = MultipleChoiceForm(instance = question.detail).as_p()
-        if question.question_type == 'p':
+        elif question.question_type == 'p':
             progressive_stages = serializers.serialize("json", question.detail.stages.all())
             progressive_info = {'max_points': defaultfilters.floatformat(question.detail.max_points, "-2"),
                                 'min_points': defaultfilters.floatformat(question.detail.min_points, "-2"),
                                 'step': defaultfilters.floatformat(question.detail.step, "-2"),
                                 'stages': progressive_stages}
-        if question.question_type == 'o':
+        elif question.question_type == 'o':
             ordering_elements = serializers.serialize("json", question.detail.elements.all().order_by('display_ordering'), fields=["text", "display_ordering"])
+        elif question.question_type == 'w':
+            map = question.detail.map
         return {
             'id': question.id,
             'number': question.number,
@@ -600,7 +677,8 @@ class GameConsumer(WebsocketConsumer):
             'media_url': question.media_url,
             'multiple_choice_form': multiple_choice_form,
             'progressive_info': progressive_info,
-            'ordering_elements': ordering_elements
+            'ordering_elements': ordering_elements,
+            'map': map
         }
 
     def construct_correct_icon(self, points):
@@ -654,6 +732,8 @@ class GameConsumer(WebsocketConsumer):
         marking = self.MARKING_ICONS[response.marking](self, response.points)
         points = defaultfilters.floatformat(response.points, "-2")
         bonus=""
+        if(response.type == "w"):
+            answer = ""
         if(response.points > response.max_points):
             bonus="<span style='color:lawngreen'> Bonus!</span>"
         html = (f"<span id='answers-{username}'>"
@@ -698,6 +778,7 @@ class GameConsumer(WebsocketConsumer):
             'mark_question': mark_question,
             'show_answer': show_answer,
             'mark_answer': mark_answer,
+            'mark_map_answer': mark_map_answer,
             'show_all_answers': show_all_answers,
             'show_correct_answer': show_correct_answer,
             'set_timer': set_timer,
