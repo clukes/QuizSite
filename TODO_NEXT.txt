@@ -3,7 +3,8 @@
 
 - Ordering round can you set margin as percentage?
 - Map round maybe have some questions show labels and some not.
-
+- Map round only supports having a specific point, not like a radius. So answer can't be UK, has to be more specific.
+  - Use a radius. Then when calculating distance, you can calculate to the center of circle then subtract the radius. Can also subtract the radius from the max distance to change formula.
 - Make sure google trends question works on ipad. have one in next quiz.
 - Automark multiple choice.
 - Put buttons in a table on leader marking screen, so that they're in the same place regardless of username. /
