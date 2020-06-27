@@ -11,4 +11,5 @@ urlpatterns = [
     path('leader/quiz/<int:quiz_pk>/rounds/<int:round_pk>/question/<int:pk>', views.GenericQuestionDetailView.as_view(), name='question-detail'),
     path('leader/game/<int:room_code>/', views.leader_room, name='leader-room'),
     path('game/', views.player_game, name='player-room'),
+    path('final_results/', views.FinalResultsListView.as_view(), name='final-results'),
 ]

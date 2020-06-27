@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 
 # Create your views here.
-from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore, UserProgressiveStage, Quiz
+from quiz.models import GenericQuestion, TextQuestion, TextResponse, Round, Game, User, UserScore, UserProgressiveStage, Quiz, FinalResults
 from quiz.forms import TextReponseForm, UsernameForm, JoinRoomForm
 from django.contrib import messages
 from django.db import IntegrityError
@@ -210,7 +210,6 @@ class GenericQuestionDetailView(generic.DetailView):
             messages.add_message(self.request, messages.ERROR, "No game running.")
         return context
 
-
 from django.shortcuts import render
 
 def leader_room(request, room_code):
@@ -236,4 +235,9 @@ def player_game(request):
         messages.add_message(request, messages.ERROR, "User doesn't exist.")
         return HttpResponseRedirect(reverse('index'))
 
-    return render(request, 'game.html');
+    return render(request, 'game.html')
+
+class FinalResultsListView(generic.ListView):
+    model = FinalResults
+    template_name = 'final_results.html'
+    ordering = ['-weighted_score']

@@ -1,6 +1,11 @@
 - LEFTOFF: Started getting map working
 - TODO: - More robust testing on ordering round. Improve the aesthetics.
+- Screen on leaders with selection boxes to match username to name, e.g. lesandlu to nan lesley.
+- Then dynamically fill the table of results, and also select which video to play.
 
+- Get client to send message when video loaded. Then I synchronise clicking play.
+
+- Change map field in mapround to choicefield
 - Ordering round can you set margin as percentage?
 - Map round maybe have some questions show labels and some not.
 - Map round only supports having a specific point, not like a radius. So answer can't be UK, has to be more specific.

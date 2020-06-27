@@ -12,6 +12,7 @@ admin.site.register(GenericResponse)
 admin.site.register(User)
 admin.site.register(UserScore)
 admin.site.register(Game)
+admin.site.register(FinalResults)
 class GenericQuestionInline(GenericStackedInline):
     model = GenericQuestion
     max_num = 1
@@ -60,7 +61,7 @@ class OrderingQuestionAdmin(admin.ModelAdmin):
         GenericQuestionInline,
         OrderingElementInline,
     ]
-    # 
+    #
     # def save_related(self, request, form, formsets, change):
     #     super(OrderingQuestionAdmin, self).save_related(request, form, formsets, change)
     #     try:

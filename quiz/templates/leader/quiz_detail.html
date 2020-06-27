@@ -1,6 +1,9 @@
 {% extends "leader/leader_base_generic.html" %}
 
 {% block content %}
+  <input id="calculate-final-results" type="button" class="btn btn-success" onclick="calculateFinalResults(event)" value="Calculate Final Results"> &emsp;
+  <input id="show-final-results" type="button" class="btn btn-success" onclick="showFinalResults(event)" value="Show Final Results"> &emsp;
+  <br><br>
   <h1>Quiz {{ quiz.number }} - {{ quiz.title }}</h1>
   <input id="show-quiz-start" type="button" class="btn btn-success" onclick="showQuizStart(event)" value="Show Quiz Start Screen"> &emsp;
   <input id="show-quiz-end" type="button" class="btn btn-success" onclick="showQuizEnd(event)" value="Show Quiz End Screen"> &emsp;
@@ -19,7 +22,7 @@
     {% endif %}
   </div>
   {% endblock %}
-  
+
   {% block scripts %}
   {{ request.session.currentGameCode|json_script:"currentGameCode" }}
   {{ quiz.id|json_script:"quizID" }}
@@ -67,6 +70,15 @@
       function showQuizEnd(event) {
         chatSocket.sendMessage({ command: 'show_quiz_end', quizID: quizID, gameID: roomCode });
       };
+
+      function calculateFinalResults(event) {
+        chatSocket.sendMessage({ command: 'calculate_final_results', quizID: quizID, gameID: roomCode });
+      };
+
+      function showFinalResults(event) {
+        chatSocket.sendMessage({ command: 'show_final_results', quizID: quizID, gameID: roomCode });
+      };
+
 
 
   </script>

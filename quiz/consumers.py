@@ -2,7 +2,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from quiz.models import GenericQuestion, User, Game, GenericResponse, TextResponse, UserScore, UserProgressiveStage, Quiz, Round
+from quiz.models import GenericQuestion, User, Game, GenericResponse, TextResponse, UserScore, UserProgressiveStage, Quiz, Round, FinalResults
 from quiz.forms import MultipleChoiceForm
 from django.template import defaultfilters
 from django.db import close_old_connections
@@ -122,11 +122,13 @@ class GameConsumer(WebsocketConsumer):
         game = data['game']
         round = game.currentRound
         scores = game.get_scores()
+        print(scores)
+        scoresDict = {key:UserScore.objects.filter(game=game,score__gt=key.score).count()+1 for rank, key in enumerate(scores)}
         message = {
             'command': 'roundEnd',
             'roundTitle': round.title,
             'roundNumber': round.number,
-            'scoresHTML': self.scores_to_html(scores)
+            'scoresHTML': self.scores_to_html(scoresDict)
         }
         self.send_message(message)
 
@@ -135,6 +137,13 @@ class GameConsumer(WebsocketConsumer):
 
     def get_question_marking(self, data):
         self.get_question(data, True)
+
+    def get_final_results(self, data):
+        message = {
+            'command': 'finalResults',
+            'draw': FinalResults.objects.first().draw
+        }
+        self.send_message(message)
 
     screen_commands = {
         'gs': get_game_start,
@@ -145,6 +154,7 @@ class GameConsumer(WebsocketConsumer):
         're': get_round_end,
         'qa': get_question_answering,
         'qm': get_question_marking,
+        'fr': get_final_results
     }
 
     def get_question(self, data, marking):
@@ -632,15 +642,73 @@ class GameConsumer(WebsocketConsumer):
             game.currentScreen = 're'
             game.save()
             scores = game.get_scores()
+            scoresDict = {key:UserScore.objects.filter(game=game,score__gt=key.score).count()+1 for rank, key in enumerate(scores)}
             message = {
                 'command': 'roundEnd',
                 'roundTitle': round.title,
                 'roundNumber': round.number,
-                'scoresHTML': self.scores_to_html(scores)
+                'scoresHTML': self.scores_to_html(scoresDict)
             }
         except (Round.DoesNotExist, Game.DoesNotExist) as e:
             message = {}
         self.send_message_to_group(message)
+
+    def calculate_final_results(self, data):
+        try:
+            gameID = data['gameID']
+            game = Game.objects.get(id=gameID)
+            scores = UserScore.objects.filter(game=game).order_by('-score')
+            print(scores)
+            for userscore in scores:
+                rank = UserScore.objects.filter(game=game,score__gt=userscore.score).count() + 1
+                print(rank)
+                try:
+                    resultsObj = FinalResults.objects.get(user=userscore.user)
+                    resultsObj.total_score += userscore.score
+                    resultsObj.weighted_score += Decimal((2 - ((rank-1)*0.25)))
+                    places = ['first', 'second', 'third', 'fourth']
+                    setattr(resultsObj, places[rank-1], F(places[rank-1]) + 1)
+                    resultsObj.save()
+                except FinalResults.DoesNotExist:
+                    pass
+        except Game.DoesNotExist:
+            pass
+    def show_final_results(self, data):
+        try:
+            gameID = data['gameID']
+            game = Game.objects.get(id=gameID)
+            game.currentQuiz = None
+            game.currentRound = None
+            game.currentScreen = 'fr'
+            game.save()
+            draw = False
+            results = FinalResults.objects.order_by('-weighted_score')
+            if(results[0].weighted_score == results[1].weighted_score):
+                draw = True
+            FinalResults.objects.all().update(video_loaded=False, draw=draw)
+            message = {
+                'command': 'finalResults',
+                'draw': FinalResults.objects.first().draw
+            }
+        except Game.DoesNotExist:
+            message = {}
+        self.send_message_to_group(message)
+
+    def set_video_load(self, data):
+        try:
+            userID = data['userID']
+            loaded = data['loaded']
+            user = User.objects.get(id=userID)
+            resultObj = FinalResults.objects.get(user=user)
+            resultObj.video_loaded = loaded
+            resultObj.save()
+            if(not FinalResults.objects.filter(video_loaded=False).exists()):
+                message = {
+                    'command': 'allLoaded',
+                }
+                self.send_message_to_group(message)
+        except (FinalResults.DoesNotExist, User.DoesNotExist) as e:
+            pass
 
     def messages_to_json(self, messages):
         result = []
@@ -749,7 +817,7 @@ class GameConsumer(WebsocketConsumer):
         comparisonItems = [{"keyword": response.get_response(),"geo":"GB","time":"today 12-m"} for response in answers if response.get_response() is not None]
         return comparisonItems
 
-    def score_to_html(self, ranking, userScore):
+    def score_to_html(self, userScore, ranking):
         username = userScore.user.username
         points = defaultfilters.floatformat(userScore.score, "-2")
         html = (f"<span class='score' id='scores-{username}'>"
@@ -757,8 +825,8 @@ class GameConsumer(WebsocketConsumer):
                 f"<br></span>")
         return html
 
-    def scores_to_html(self, scores):
-        scoresDict = {rank+1: key for rank, key in enumerate(scores)}
+    def scores_to_html(self, scoresDict):
+        print(scoresDict)
         html = ''.join(self.score_to_html(k, v) for k, v in scoresDict.items())
         return html
 
@@ -787,7 +855,10 @@ class GameConsumer(WebsocketConsumer):
             'show_quiz_end': show_quiz_end,
             'show_round_start': show_round_start,
             'show_round_transition': show_round_transition,
-            'show_round_end': show_round_end
+            'show_round_end': show_round_end,
+            'calculate_final_results': calculate_final_results,
+            'show_final_results': show_final_results,
+            'set_video_load': set_video_load
         }
 
     def connect(self):

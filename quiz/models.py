@@ -399,6 +399,7 @@ class Game(models.Model):
         ('re', 'Round End'),
         ('qa', 'Question Answering'),
         ('qm', 'Question Marking'),
+        ('fr', 'Final Results')
     ]
     currentScreen = models.CharField(
         max_length=2,
@@ -423,3 +424,23 @@ class Game(models.Model):
         if self.timerEnd:
             return (self.timerEnd - timezone.now()).total_seconds() * 1000
         return None
+
+
+class FinalResults(models.Model):
+    draw = models.BooleanField(default=False)
+    name = models.CharField(max_length=200)
+    user = models.ForeignKey('User', related_name='final_results', on_delete=models.CASCADE, null=True, blank=True)
+    first = models.PositiveIntegerField()
+    second = models.PositiveIntegerField()
+    third = models.PositiveIntegerField()
+    fourth = models.PositiveIntegerField()
+    weighted_score = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_score = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    video_loaded = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = "Final Results"
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return f'{self.name}'
