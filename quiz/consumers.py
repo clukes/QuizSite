@@ -671,8 +671,15 @@ class GameConsumer(WebsocketConsumer):
                     resultsObj.save()
                 except FinalResults.DoesNotExist:
                     pass
+            draw = False
+            results = FinalResults.objects.order_by('-weighted_score')
+            if(results[0].weighted_score == results[1].weighted_score):
+                draw = True
+            FinalResults.objects.all().update(video_loaded=False, draw=draw)
+            self.send_message({'command': 'calculatedFinalResults', 'draw': FinalResults.objects.first().draw})
         except Game.DoesNotExist:
             pass
+
     def show_final_results(self, data):
         try:
             gameID = data['gameID']
@@ -681,11 +688,7 @@ class GameConsumer(WebsocketConsumer):
             game.currentRound = None
             game.currentScreen = 'fr'
             game.save()
-            draw = False
-            results = FinalResults.objects.order_by('-weighted_score')
-            if(results[0].weighted_score == results[1].weighted_score):
-                draw = True
-            FinalResults.objects.all().update(video_loaded=False, draw=draw)
+            FinalResults.objects.all().update(video_loaded=False)
             message = {
                 'command': 'finalResults',
                 'draw': FinalResults.objects.first().draw

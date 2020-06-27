@@ -1,6 +1,7 @@
 {% extends "leader/leader_base_generic.html" %}
 
 {% block content %}
+  <p id="finalResultsDisplay"></p>
   <input id="calculate-final-results" type="button" class="btn btn-success" onclick="calculateFinalResults(event)" value="Calculate Final Results"> &emsp;
   <input id="show-final-results" type="button" class="btn btn-success" onclick="showFinalResults(event)" value="Show Final Results"> &emsp;
   <br><br>
@@ -56,6 +57,21 @@
         }
         catch(err) {
           console.log(err.message);
+        }
+      };
+
+      chatSocket.onmessage = function(e) {
+        console.log(e)
+        const data = JSON.parse(e.data);
+        const command = data.command;
+
+        if(command === 'calculatedFinalResults') {
+          if(data.draw) {
+            document.getElementById('finalResultsDisplay').innerHTML = 'Calculated. Draw.';
+          }
+          else {
+            document.getElementById('finalResultsDisplay').innerHTML = 'Calculated. Not a draw.';
+          }
         }
       };
 
