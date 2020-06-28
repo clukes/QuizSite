@@ -313,6 +313,8 @@ No current game
               document.getElementById('waitingForVideoLoading').style.display = "block";
               chatSocket.sendMessage({ command: 'set_video_load', userID: userID, loaded: true });
             });
+
+            video.load();
           });
         }
         else if(command === 'allLoaded') {
