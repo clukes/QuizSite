@@ -297,11 +297,12 @@ No current game
             chatSocket.sendMessage({ command: 'set_video_load', userID: userID, loaded: false });
             video = document.getElementById('resultsVideo');
             if(data.draw) {
-              document.getElementById('resultsVideo').src = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
+              // document.getElementById('resultsVideo').src = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
+              // document.getElementById('resultsVideo').src = "https://github.com/clukes/QuizSite/blob/master/quiz/static/img/draw.mp4";
+              document.getElementById('resultsVideoSrc').src = "https://dl.dropbox.com/s/pxraryn6jt28sn4/draw.mp4";
             }
             else {
-              document.getElementById('resultsVideo').src = "https://github.com/clukes/QuizSite/blob/master/quiz/static/img/not-draw.mp4?raw=true";
-              document.getElementById('resultsVideoSrc').src = "https://github.com/clukes/QuizSite/blob/master/quiz/static/img/not-draw.mp4?raw=true";
+              document.getElementById('resultsVideoSrc').src = "https://dl.dropbox.com/s/eq5vn5ony0haqq6/not-draw.mp4";
             }
             video.addEventListener('ended', function() {
               window.location.replace("{% url 'final-results' %}");
