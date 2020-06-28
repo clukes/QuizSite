@@ -12,4 +12,4 @@ urlpatterns = [
     path('leader/game/<int:room_code>/', views.leader_room, name='leader-room'),
     path('game/', views.player_game, name='player-room'),
     path('final_results/', views.FinalResultsListView.as_view(), name='final-results'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

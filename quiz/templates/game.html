@@ -298,6 +298,9 @@ No current game
             if(data.draw) {
               document.getElementById('resultsVideo').src = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
             }
+            else {
+              document.getElementById('resultsVideo').src = "{% static 'img/draw.mp4' %}";
+            }
             video.addEventListener('ended', function() {
               window.location.replace("{% url 'final-results' %}");
             });
