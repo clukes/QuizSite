@@ -300,6 +300,7 @@ No current game
             }
             else {
               document.getElementById('resultsVideo').src = "{% static 'img/draw.mp4' %}";
+              document.getElementById('resultsVideoSrc').src = "{% static 'img/draw.mp4' %}";
             }
             video.addEventListener('ended', function() {
               window.location.replace("{% url 'final-results' %}");
