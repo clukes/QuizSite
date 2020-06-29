@@ -1,15 +1,21 @@
 - LEFTOFF: Started getting map working
 - TODO: - More robust testing on ordering round. Improve the aesthetics.
-- Screen on leaders with selection boxes to match username to name, e.g. lesandlu to nan lesley.
-- Then dynamically fill the table of results, and also select which video to play.
+- Make sure videos stay synced and dont buffer
 
-- Get client to send message when video loaded. Then I synchronise clicking play.
+- Millionaire:
+- Veto button, if everyone clicks veto then goes to the next question. Counter next to veto.
+- Maybe have people pick categories.
+- Have a timer that kicks in after half the people have answered. When it reaches 0 it goes to the next question.
+- If don't select answer, show that on lifeline.
+- When you get a question wrong (maybe more than 1, maybe 3), you're out but you can keep answering and getting reduced points, maybe 1/2 1/3 or 1/4.
+- When someones out they can keep answering, if they get enough correct they get an item which they can use to inconvenience the players still playing
+have to get 3*players out, e.g. 6 correct answers across 2 people out in order to unlock powerup. Then everyone whos out has to vote who to use the powerup on.
 
 - Change map field in mapround to choicefield
 - Ordering round can you set margin as percentage?
 - Map round maybe have some questions show labels and some not.
 - Map round only supports having a specific point, not like a radius. So answer can't be UK, has to be more specific.
-  - Use a radius. Then when calculating distance, you can calculate to the center of circle then subtract the radius. Can also subtract the radius from the max distance to change formula.
+- Use a radius. Then when calculating distance, you can calculate to the center of circle then subtract the radius. Can also subtract the radius from the max distance to change formula.
 - Make sure google trends question works on ipad. have one in next quiz.
 - Automark multiple choice.
 - Put buttons in a table on leader marking screen, so that they're in the same place regardless of username. /

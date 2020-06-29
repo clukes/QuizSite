@@ -296,9 +296,38 @@ No current game
           $("#current-screen").load("{% static 'quiz/finalResults.html' %}", function() {
             chatSocket.sendMessage({ command: 'set_video_load', userID: userID, loaded: false });
             video = document.getElementById('resultsVideo');
+
+            var req = new XMLHttpRequest();
+            var source = '';
             if(data.draw) {
-              document.getElementById('resultsVideo').src = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
+              source = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
             }
+            else {
+              source = 'https://thumbs.gfycat.com/JoyfulEsteemedIvorybackedwoodswallow-mobile.mp4';
+            }
+            req.open('GET', source, true);
+            req.responseType = 'blob';
+
+            req.onload = function() {
+               // Onload is triggered even on 404
+               // so we need to check the status code
+               if (this.status === 200) {
+                  var videoBlob = this.response;
+                  var vid = URL.createObjectURL(videoBlob); // IE10+
+                  // Video is now downloaded
+                  // and we can set it as source on the video element
+                  video.src = vid;
+               }
+            }
+            req.onerror = function() {
+               // Error
+            }
+
+            req.send();
+
+            // if(data.draw) {
+            //   document.getElementById('resultsVideo').src = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
+            // }
             video.addEventListener('ended', function() {
               window.location.replace("{% url 'final-results' %}");
             });
@@ -310,6 +339,23 @@ No current game
             });
 
             video.load();
+
+            // chatSocket.sendMessage({ command: 'set_video_load', userID: userID, loaded: false });
+            // video = document.getElementById('resultsVideo');
+            // if(data.draw) {
+            //   document.getElementById('resultsVideo').src = 'https://thumbs.gfycat.com/WideAdventurousKouprey-mobile.mp4';
+            // }
+            // video.addEventListener('ended', function() {
+            //   window.location.replace("{% url 'final-results' %}");
+            // });
+            // video.addEventListener('canplaythrough', function() {
+            //   console.log("loaded");
+            //   document.getElementById('videoLoading').style.display = "none";
+            //   document.getElementById('waitingForVideoLoading').style.display = "block";
+            //   chatSocket.sendMessage({ command: 'set_video_load', userID: userID, loaded: true });
+            // });
+            //
+            // video.load();
           });
         }
         else if(command === 'allLoaded') {
