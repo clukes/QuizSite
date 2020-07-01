@@ -1,6 +1,6 @@
 - LEFTOFF: Started getting map working
 - TODO: - More robust testing on ordering round. Improve the aesthetics.
-- Make sure videos stay synced and dont buffer
+- Test that videos stay synced and dont buffer
 
 - Millionaire:
 - Veto button, if everyone clicks veto then goes to the next question. Counter next to veto.
