@@ -317,13 +317,13 @@ No current game
                   // Video is now downloaded
                   // and we can set it as source on the video element
                   video.src = vid;
+                  video.load();
                }
             }
             req.onerror = function() {
                // Error
             }
 
-            req.send();
 
             video.addEventListener('ended', function() {
               window.location.replace("{% url 'final-results' %}");
@@ -335,7 +335,7 @@ No current game
               chatSocket.sendMessage({ command: 'set_video_load', userID: userID, loaded: true });
             });
 
-            video.load();
+            req.send();
           });
         }
         else if(command === 'allLoaded') {
