@@ -1,7 +1,7 @@
 
 # Quivia: A Quiz Website
 
-A quiz website I started creating during the Covid-19 lockdown in 2020, to play Quizzes with my family that I created.
+A quiz website I started creating during the Covid-19 lockdown in 2020, to play Quizzes that I created, with my family.
 
 
 ## Features
