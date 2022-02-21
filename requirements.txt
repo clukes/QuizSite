@@ -66,7 +66,7 @@ tornado==5.1.1
 Twisted==18.9.0
 txaio==18.8.1
 unicodecsv==0.14.1
-urllib3==1.24.1
+urllib3==1.26.5
 Werkzeug==0.14.1
 whitenoise==4.1.2
 xlrd==1.1.0
