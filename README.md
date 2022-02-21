@@ -6,7 +6,7 @@ A quiz website I started creating during the Covid-19 lockdown in 2020, to play 
 
 ## Features
 
-- Responsive pages and theming.
+- Responsive pages and theming. Tested on Chrome, Firefox and Safari on Desktop, Android and Apple devices.
 - Multiple different types of questions, with multimedia content, e.g. images, audio and video.
     - Text answers
     - Multiple Choice
