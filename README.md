@@ -12,7 +12,7 @@ A quiz website I started creating during the Covid-19 lockdown in 2020, to play 
     - Multiple Choice
     - Map selection
     - "Progressive questions": hints which reduce max score with each new hint
-    - Google Trends, connects to the Google API to automatically score based on the top search results.
+    - Google Trends, connects to the Google Trends API to automatically score based on the top search results.
 - Different room codes.
 - Live player list.
 
